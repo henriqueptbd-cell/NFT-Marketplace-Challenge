@@ -1,82 +1,68 @@
-# NFT Marketplace Challenge
+# Kurio — NFT Marketplace
 
-Plataforma front-end completa para um Marketplace de NFTs, desenvolvida com foco em resiliência, gestão de estado assíncrono e integração de dados em tempo real.
+Base do desafio prático front-end de marketplace de NFTs. Esta fase configura o ambiente, os contratos tipados, a camada de mocks e os componentes de design system. As telas de produto seguem como placeholders nesta etapa.
 
-O projeto implementa fluxos de descoberta, gerenciamento de carrinho e checkout seguro (com chaves de idempotência), utilizando uma API mockada internamente para simular condições extremas de rede e concorrência.
+## Requisitos
 
-## 🛠 Tecnologias e Ferramentas
+- Node.js compatível com Vite 8.
+- npm 10.9.9 (versão registrada em `package.json`).
 
-*   **Interface:** React (Vite) + TypeScript
-*   **Roteamento:** TanStack Router
-*   **Estado Assíncrono:** TanStack Query
-*   **Cliente HTTP:** Axios
-*   **Tempo Real:** Socket.IO Client
-*   **Estilização & UI:** Tailwind CSS + shadcn/ui
-*   **Mocking de Rede:** MSW (Mock Service Worker)
-*   **Testes E2E:** Playwright
-*   **Performance:** Lighthouse
-
-## ⚙️ Pré-requisitos
-
-*   Node.js (versão 18+ recomendada)
-*   NPM, Yarn ou pnpm
-
-## 🚀 Instalação e Execução local
-
-Clone o repositório e instale as dependências:
+## Começar
 
 ```bash
-git clone https://github.com/seu-usuario/nft-marketplace-challenge.git
-cd nft-marketplace-challenge
 npm install
-```
-
-Para iniciar o servidor de desenvolvimento com os mocks (MSW) ativados:
-
-```bash
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5173`. O acesso direto a qualquer rota (ex: `/nft/123`, `/checkout`) está configurado e funcional.
+O modo de desenvolvimento carrega `.env.development`, habilita MSW v2 e aponta a API para `/api`. O Service Worker está versionado em `public/mockServiceWorker.js`. Para desligar os mocks, defina `VITE_ENABLE_MSW=false` no ambiente de execução e conecte `VITE_API_URL` a uma API compatível.
 
-## 📜 Variáveis de Ambiente
+Variáveis principais:
 
-Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+| Variável             | Uso                                                | Padrão de desenvolvimento |
+| -------------------- | -------------------------------------------------- | ------------------------- |
+| `VITE_API_URL`       | Base URL REST do cliente Axios                     | `/api`                    |
+| `VITE_ENABLE_MSW`    | Inicia MSW no browser                              | `true`                    |
+| `VITE_SOCKET_URL`    | URL do cliente Socket.IO; vazia usa a origem atual | origem atual              |
+| `VITE_MOCK_SCENARIO` | Cenário de latência/erro dos handlers              | `normal`                  |
 
-```env
-VITE_API_URL=http://localhost:5173/api
-VITE_ENABLE_MSW=true
+Cenários aceitos: `normal`, `latency` e `server-error`.
+
+## Comandos
+
+```bash
+npm run dev            # Vite com MSW
+npm run type-check     # TypeScript strict (inclui Playwright)
+npm run lint           # ESLint, sem any explícito e sem console.log
+npm run format:check   # Prettier
+npm run format         # Formatar arquivos
+npm run build          # Typecheck + build de produção
+npm run test:e2e       # Playwright
 ```
 
-## 🔑 Credenciais Fictícias (Mocks)
+## Estrutura
 
-Para acessar os fluxos privados (Perfil, Carteiras, Checkout), utilize:
+```text
+src/
+  api/{client,endpoints,types}/   Cliente Axios, endpoints e schemas Zod
+  mocks/{handlers,fixtures,store,scenarios}/  API falsa REST e WebSocket
+  routes/                         TanStack Router code-based, type-safe
+  components/ui/                  Primitives acessíveis inspirados em shadcn/ui
+  components/domain/              NFTImage e componentes de domínio
+  hooks/                          Hooks TanStack Query
+  lib/                            Validação, formatação e utilitários
+public/nfts/                      Destino dos assets que o usuário adicionará
+```
 
-*   **E-mail:** `collector@nftmarket.com`
-*   **Senha:** `Secret123!`
+## Dados e imagens
 
-O fluxo de Cadastro também está funcional localmente através do MSW.
+Os componentes não carregam dados de catálogo hardcoded em JSX: recebem props tipadas derivadas da API. Durante o desenvolvimento, os handlers MSW usam as nove fixtures de NFT em `src/mocks/fixtures/`. O contrato `NFT` exige `image: string` (por exemplo, `/nfts/emerald-ape-042.webp`) e preço decimal em string; o preço ETH nunca é convertido para `number`/`float`.
 
-## 🧪 Simulação de Cenários e Falhas (MSW)
+Os arquivos reais **não estão incluídos**. Adicione-os em `public/nfts/` com os nomes apontados nas fixtures. `NFTImage` tenta carregar o path e, se estiver vazio ou falhar, mantém o aspect ratio e mostra um placeholder em gradiente com o nome recebido pela prop.
 
-A camada de Mock Service Worker foi configurada para simular cenários reais de rede. Para testar o comportamento de recuperação de erros da interface, utilize o painel de debug (ou altere no arquivo `src/mocks/config.ts`):
+## Rotas preparadas
 
-*   **Timeout/Latência:** Simula respostas demoradas (2s a 5s).
-*   **Erro 500:** Força falhas no fechamento do pedido.
-*   **Sessão Expirada:** Retorna 401 para forçar o fluxo de relogin salvando o estado atual.
-*   **Socket.IO:** Dispara eventos de mudança de preço (`nft.updated`) pelo console do navegador para testar a invalidação de cache.
+`/`, `/nft/$nftId`, `/cart`, `/checkout`, `/login`, `/register`, `/profile` e `/wallets`. Nesta fase cada rota renderiza somente um shell vazio; as páginas completas e estados de produto pertencem à próxima fase de implementação.
 
-Para resetar o "banco de dados" do MSW para o estado inicial, execute o comando global no console do navegador: `window.__mswReset()`.
+## Stack e referência do binding
 
-## 📦 Comandos Disponíveis
-
-| Comando | Descrição |
-| :--- | :--- |
-| `npm run dev` | Inicia o projeto com MSW ativado |
-| `npm run build` | Gera o build de produção |
-| `npm run preview` | Serve o build localmente |
-| `npm run lint` | Executa validações de código e estilos |
-| `npm run type-check` | Verifica a integridade da tipagem |
-| `npm run test:e2e` | Executa testes end-to-end (Playwright) sem interface |
-| `npm run test:e2e:ui` | Abre a interface visual do Playwright |
-| `npm run audit` | Executa a auditoria do Lighthouse no terminal |
+Vite, React, TypeScript strict, Tailwind CSS v3, shadcn/ui customizado, TanStack Router, TanStack Query v5, Axios, Socket.IO client, MSW v2, Zod, ESLint, Prettier e Playwright. O binding Socket.IO/MSW converte os eventos do protocolo Socket.IO nos handlers de WebSocket do MSW: [documentação do pacote](https://www.npmjs.com/package/@mswjs/socket.io-binding).

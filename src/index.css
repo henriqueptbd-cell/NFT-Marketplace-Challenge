@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: 'JetBrains Mono', monospace;
+  color: #f8f0d8;
+  background: #140c08;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #140c08;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #140c08;
+  color: #f8f0d8;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:where(
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role='radio'],
+  [role='checkbox'],
+  [role='tab']
+):focus-visible {
+  outline: 2px solid #d0884c;
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #140c08;
+  background: #d0884c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

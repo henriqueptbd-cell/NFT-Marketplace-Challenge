@@ -1,0 +1,12 @@
+{
+  "routes": [
+    { "path": "/" },
+    { "path": "/nft/:nftId" },
+    { "path": "/cart" },
+    { "path": "/checkout" },
+    { "path": "/login" },
+    { "path": "/register" },
+    { "path": "/profile" },
+    { "path": "/wallets" }
+  ]
+}
