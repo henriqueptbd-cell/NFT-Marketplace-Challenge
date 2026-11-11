@@ -10,7 +10,7 @@ import App from '@/App'
 import '@/index.css'
 
 async function startApplication(): Promise<void> {
-  if (import.meta.env.VITE_ENABLE_MSW === 'true') {
+  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
     const { worker } = await import('@/mocks/browser')
     await worker.start({ onUnhandledRequest: 'bypass' })
   }

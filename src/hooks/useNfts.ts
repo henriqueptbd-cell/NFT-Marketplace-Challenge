@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getNftById, getNfts } from '@/api/endpoints'
+import { getNft, getNfts } from '@/api/endpoints'
 
 export const nftQueryKeys = {
   all: ['nfts'] as const,
@@ -9,14 +9,14 @@ export const nftQueryKeys = {
 export function useNfts() {
   return useQuery({
     queryKey: nftQueryKeys.all,
-    queryFn: ({ signal }) => getNfts(signal),
+    queryFn: ({ signal }) => getNfts({}, signal),
   })
 }
 
 export function useNft(id: string) {
   return useQuery({
     queryKey: nftQueryKeys.detail(id),
-    queryFn: ({ signal }) => getNftById(id, signal),
+    queryFn: ({ signal }) => getNft(id, signal),
     enabled: id.length > 0,
   })
 }

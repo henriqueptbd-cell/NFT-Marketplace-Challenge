@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { decimalStringSchema, networkSchema } from '@/api/types/common'
 
 export const nftAttributeSchema = z
   .object({
@@ -7,30 +8,35 @@ export const nftAttributeSchema = z
   })
   .strict()
 
-export const nftRatingSchema = z
+export const nftEditionSchema = z
   .object({
-    value: z.number().min(0).max(5),
-    count: z.number().int().nonnegative(),
+    total: z.number().int().positive(),
+    available: z.number().int().nonnegative(),
+    isOpen: z.boolean(),
   })
   .strict()
+  .refine((edition) => edition.isOpen || edition.available <= edition.total, {
+    message: 'Available editions cannot exceed the total edition size',
+    path: ['available'],
+  })
 
 export const nftSchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1),
     image: z.string(),
-    priceEth: z.string().regex(/^\d+(?:\.\d+)?$/, 'Invalid decimal price'),
+    priceString: decimalStringSchema,
+    edition: nftEditionSchema,
     collection: z.string().min(1),
-    edition: z.string().min(1),
-    rarity: z.string().optional(),
-    description: z.string().optional(),
+    network: networkSchema,
     attributes: z.array(nftAttributeSchema),
-    rating: nftRatingSchema.optional(),
+    isRare: z.boolean(),
+    description: z.string(),
   })
   .strict()
 
 export const nftListSchema = z.array(nftSchema)
 
 export type NFTAttribute = z.infer<typeof nftAttributeSchema>
-export type NFTRating = z.infer<typeof nftRatingSchema>
+export type NFTEdition = z.infer<typeof nftEditionSchema>
 export type NFT = z.infer<typeof nftSchema>

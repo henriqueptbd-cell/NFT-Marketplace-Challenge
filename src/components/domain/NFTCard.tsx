@@ -12,6 +12,10 @@ export interface NFTCardProps {
 }
 
 export function NFTCard({ nft, className, priority = false }: NFTCardProps) {
+  const rarityLabel = nft.attributes.find(
+    (attribute) => attribute.traitType === 'Raridade',
+  )?.value
+
   return (
     <article className={cn('grid gap-2', className)}>
       <Link
@@ -21,9 +25,9 @@ export function NFTCard({ nft, className, priority = false }: NFTCardProps) {
         className="group relative block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <NFTImage src={nft.image} alt={nft.name} priority={priority} />
-        {nft.rarity ? (
+        {nft.isRare && rarityLabel ? (
           <Badge className="absolute left-2 top-2" variant="default">
-            {nft.rarity}
+            {rarityLabel}
           </Badge>
         ) : null}
       </Link>
@@ -32,7 +36,7 @@ export function NFTCard({ nft, className, priority = false }: NFTCardProps) {
           {nft.name}
         </h2>
         <p className="text-xs text-text-secondary">{nft.collection}</p>
-        <PriceDisplay price={nft.priceEth} />
+        <PriceDisplay price={nft.priceString} />
       </div>
     </article>
   )

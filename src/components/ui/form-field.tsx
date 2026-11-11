@@ -9,6 +9,7 @@ export interface FormFieldProps {
   description?: string
   error?: string
   required?: boolean
+  requiredIndicator?: ReactNode
   className?: string
 }
 
@@ -19,13 +20,16 @@ export function FormField({
   description,
   error,
   required = false,
+  requiredIndicator,
   className,
 }: FormFieldProps) {
   return (
     <div className={cn('grid gap-2', className)}>
       <Label htmlFor={id}>
         {label}
-        {required ? <span aria-hidden="true"> *</span> : null}
+        {required && requiredIndicator ? (
+          <span aria-hidden="true">{requiredIndicator}</span>
+        ) : null}
       </Label>
       {children}
       {description ? (
