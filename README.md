@@ -41,7 +41,7 @@ A aplicação estará disponível em `http://localhost:5173`. O acesso direto a 
 
 ## 📜 Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto baseado no \`.env.example\`:
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
 ```env
 VITE_API_URL=http://localhost:5173/api
