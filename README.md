@@ -25,28 +25,28 @@ O projeto implementa fluxos de descoberta, gerenciamento de carrinho e checkout 
 
 Clone o repositório e instale as dependências:
 
-\`\`\`bash
+```bash
 git clone https://github.com/seu-usuario/nft-marketplace-challenge.git
 cd nft-marketplace-challenge
 npm install
-\`\`\`
+```
 
 Para iniciar o servidor de desenvolvimento com os mocks (MSW) ativados:
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-A aplicação estará disponível em \`http://localhost:5173\`. O acesso direto a qualquer rota (ex: \`/nft/123\`, \`/checkout\`) está configurado e funcional.
+A aplicação estará disponível em `http://localhost:5173`. O acesso direto a qualquer rota (ex: `/nft/123`, `/checkout`) está configurado e funcional.
 
 ## 📜 Variáveis de Ambiente
 
-Crie um arquivo \`.env\` na raiz do projeto baseado no \`.env.example\`:
+Crie um arquivo `.env` na raiz do projeto baseado no \`.env.example\`:
 
-\`\`\`env
+```env
 VITE_API_URL=http://localhost:5173/api
 VITE_ENABLE_MSW=true
-\`\`\`
+```
 
 ## 🔑 Credenciais Fictícias (Mocks)
 
