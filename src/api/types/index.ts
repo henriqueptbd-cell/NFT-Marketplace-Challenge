@@ -22,9 +22,11 @@ export {
   nftEditionSchema,
   nftListSchema,
   nftSchema,
+  nftSortSchema,
   type NFT,
   type NFTAttribute,
   type NFTEdition,
+  type NFTSort,
 } from '@/api/types/nft'
 export {
   orderSchema,

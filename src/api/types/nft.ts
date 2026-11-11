@@ -20,11 +20,20 @@ export const nftEditionSchema = z
     path: ['available'],
   })
 
+export const nftSortSchema = z.enum([
+  'relevance',
+  'newest',
+  'trending',
+  'price-asc',
+  'price-desc',
+])
+
 export const nftSchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1),
     image: z.string(),
+    images: z.array(z.string().min(1)).min(1),
     priceString: decimalStringSchema,
     edition: nftEditionSchema,
     collection: z.string().min(1),
@@ -32,6 +41,10 @@ export const nftSchema = z
     attributes: z.array(nftAttributeSchema),
     isRare: z.boolean(),
     description: z.string(),
+    rating: z.number().min(0).max(5),
+    reviewCount: z.number().int().nonnegative(),
+    createdAt: z.string().datetime(),
+    trendingScore: z.number().int().nonnegative(),
   })
   .strict()
 
@@ -40,3 +53,4 @@ export const nftListSchema = z.array(nftSchema)
 export type NFTAttribute = z.infer<typeof nftAttributeSchema>
 export type NFTEdition = z.infer<typeof nftEditionSchema>
 export type NFT = z.infer<typeof nftSchema>
+export type NFTSort = z.infer<typeof nftSortSchema>

@@ -1,15 +1,23 @@
-import { useQuery } from '@tanstack/react-query'
-import { getNft, getNfts } from '@/api/endpoints'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { getNft, getNfts, type NFTSearchParams } from '@/api/endpoints'
 
 export const nftQueryKeys = {
   all: ['nfts'] as const,
-  detail: (id: string) => ['nfts', id] as const,
+  list: (params: NFTSearchParams) => ['nfts', params] as const,
+  detail: (id: string) => ['nft', id] as const,
 }
 
-export function useNfts() {
+export function useNfts(
+  params: NFTSearchParams = {},
+  options: { enabled?: boolean } = {},
+) {
+  const requestParams = { ...params }
+  delete requestParams.page
   return useQuery({
-    queryKey: nftQueryKeys.all,
-    queryFn: ({ signal }) => getNfts({}, signal),
+    queryKey: nftQueryKeys.list(params),
+    queryFn: ({ signal }) => getNfts(requestParams, signal),
+    placeholderData: keepPreviousData,
+    enabled: options.enabled ?? true,
   })
 }
 

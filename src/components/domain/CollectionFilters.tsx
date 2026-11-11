@@ -9,6 +9,7 @@ export interface CollectionFilterOption {
 
 export interface CollectionFiltersProps {
   groupLabel: string
+  idPrefix?: string
   options: CollectionFilterOption[]
   selectedValues: string[]
   onSelectionChange: (value: string, selected: boolean) => void
@@ -16,6 +17,7 @@ export interface CollectionFiltersProps {
 
 export function CollectionFilters({
   groupLabel,
+  idPrefix = 'collection-filter',
   options,
   selectedValues,
   onSelectionChange,
@@ -26,7 +28,7 @@ export function CollectionFilters({
         {groupLabel}
       </legend>
       {options.map((option) => {
-        const inputId = `collection-filter-${option.value}`
+        const inputId = `${idPrefix}-${option.value}`
         const label =
           option.count === undefined
             ? option.label

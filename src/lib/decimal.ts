@@ -46,6 +46,12 @@ export function subtractDecimalStrings(left: string, right: string): string {
   return unitsToDecimal(decimalToUnits(left) - decimalToUnits(right))
 }
 
+export function compareDecimalStrings(left: string, right: string): -1 | 0 | 1 {
+  const leftUnits = decimalToUnits(left)
+  const rightUnits = decimalToUnits(right)
+  return leftUnits < rightUnits ? -1 : leftUnits > rightUnits ? 1 : 0
+}
+
 export function percentageOfDecimal(value: string, percentage: string): string {
   const percentageUnits = BigInt(percentage)
   return unitsToDecimal((decimalToUnits(value) * percentageUnits) / 100n)

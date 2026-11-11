@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import { networkSchema } from '@/api/types'
+import { decimalStringSchema, networkSchema, nftSortSchema } from '@/api/types'
+import { compareDecimalStrings } from '@/lib/decimal'
 import { apiErrorResponse } from '@/mocks/handlers/common'
 import { getActiveMockScenario } from '@/mocks/scenarios'
 import { getMockState } from '@/mocks/store'
@@ -10,9 +11,9 @@ export const nftHandlers = [
     const pageRaw = url.searchParams.get('page')
     const pageSizeRaw = url.searchParams.get('pageSize')
     const rareRaw = url.searchParams.get('isRare')
-    const networkRaw = url.searchParams.get('network')
     const page = pageRaw === null ? 1 : Number(pageRaw)
     const pageSize = pageSizeRaw === null ? 100 : Number(pageSizeRaw)
+
     if (
       !Number.isInteger(page) ||
       page < 1 ||
@@ -33,17 +34,64 @@ export const nftHandlers = [
         'isRare must be true or false.',
       )
     }
-    const parsedNetwork =
-      networkRaw === null ? undefined : networkSchema.safeParse(networkRaw)
-    if (parsedNetwork && !parsedNetwork.success) {
+
+    const networkValues = [
+      ...url.searchParams.getAll('network'),
+      ...url.searchParams.getAll('networks'),
+    ]
+    const parsedNetworks = networkValues.map((value) =>
+      networkSchema.safeParse(value),
+    )
+    if (parsedNetworks.some((value) => !value.success)) {
       return apiErrorResponse(400, 'BAD_REQUEST', 'network is not supported.')
     }
+    const networks = parsedNetworks.flatMap((value) =>
+      value.success ? [value.data] : [],
+    )
+
+    const collectionValues = [
+      ...url.searchParams.getAll('collection'),
+      ...url.searchParams.getAll('collections'),
+      ...url.searchParams.getAll('collections[]'),
+    ]
+    const collections = new Set(collectionValues.filter(Boolean))
+    const minRaw = url.searchParams.get('priceMin') ?? undefined
+    const maxRaw = url.searchParams.get('priceMax') ?? undefined
+    const parsedMin =
+      minRaw === undefined ? undefined : decimalStringSchema.safeParse(minRaw)
+    const parsedMax =
+      maxRaw === undefined ? undefined : decimalStringSchema.safeParse(maxRaw)
+    if (
+      (parsedMin && !parsedMin.success) ||
+      (parsedMax && !parsedMax.success)
+    ) {
+      return apiErrorResponse(400, 'BAD_REQUEST', 'Price filters are invalid.')
+    }
+    const priceMin = parsedMin?.success ? parsedMin.data : undefined
+    const priceMax = parsedMax?.success ? parsedMax.data : undefined
+    if (
+      priceMin !== undefined &&
+      priceMax !== undefined &&
+      compareDecimalStrings(priceMin, priceMax) > 0
+    ) {
+      return apiErrorResponse(
+        400,
+        'BAD_REQUEST',
+        'Minimum price cannot exceed maximum price.',
+      )
+    }
+
+    const sortRaw = url.searchParams.get('sort') ?? undefined
+    const parsedSort =
+      sortRaw === undefined ? undefined : nftSortSchema.safeParse(sortRaw)
+    if (parsedSort && !parsedSort.success) {
+      return apiErrorResponse(400, 'BAD_REQUEST', 'Sort order is invalid.')
+    }
+    const sort = parsedSort?.success ? parsedSort.data : 'relevance'
     if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
 
     const state = getMockState()
     const query = url.searchParams.get('query')?.trim().toLowerCase()
-    const collection = url.searchParams.get('collection')
-    const network = parsedNetwork?.success ? parsedNetwork.data : undefined
     const isRare = rareRaw === null ? undefined : rareRaw === 'true'
     const filtered = state.nfts.filter((nft) => {
       if (
@@ -53,13 +101,27 @@ export const nftHandlers = [
           .includes(query)
       )
         return false
-      if (collection && nft.collection !== collection) return false
-      if (network && nft.network !== network) return false
+      if (collections.size > 0 && !collections.has(nft.collection)) return false
+      if (networks.length > 0 && !networks.includes(nft.network)) return false
+      if (priceMin && compareDecimalStrings(nft.priceString, priceMin) < 0)
+        return false
+      if (priceMax && compareDecimalStrings(nft.priceString, priceMax) > 0)
+        return false
       if (isRare !== undefined && nft.isRare !== isRare) return false
       return true
     })
+
+    const sorted = filtered.slice().sort((left, right) => {
+      if (sort === 'newest')
+        return Date.parse(right.createdAt) - Date.parse(left.createdAt)
+      if (sort === 'price-asc')
+        return compareDecimalStrings(left.priceString, right.priceString)
+      if (sort === 'price-desc')
+        return compareDecimalStrings(right.priceString, left.priceString)
+      return right.trendingScore - left.trendingScore
+    })
     const start = (page - 1) * pageSize
-    return HttpResponse.json(filtered.slice(start, start + pageSize))
+    return HttpResponse.json(sorted.slice(start, start + pageSize))
   }),
 
   http.get('/api/nfts/:nftId', ({ params }) => {

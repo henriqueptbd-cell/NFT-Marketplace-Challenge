@@ -53,7 +53,7 @@ async function openApp(page: Page): Promise<void> {
     const browserWindow = window as unknown as TestWindow
     return (
       typeof browserWindow.__mswScenario === 'function' &&
-      document.querySelector('#root > main') !== null
+      document.querySelector('#root main') !== null
     )
   })
 }

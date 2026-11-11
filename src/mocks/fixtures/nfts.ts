@@ -1,6 +1,6 @@
 import { nftListSchema } from '@/api/types/nft'
 
-export const nftFixtures = nftListSchema.parse([
+const baseNftFixtures = [
   {
     id: 'emerald-ape-042',
     name: 'Emerald Ape #042',
@@ -362,4 +362,20 @@ export const nftFixtures = nftListSchema.parse([
     isRare: true,
     description: 'Edição Prism Apes com paleta solar.',
   },
-])
+]
+
+const ratings = [
+  4.9, 4.7, 4.6, 4.8, 4.5, 4.9, 4.4, 4.2, 4.8, 4.6, 4.1, 4.7, 4.3, 4.5, 4.8,
+  4.2, 4.6, 4.4, 4.9, 4.3, 4.7, 4.5, 4.8, 4.6,
+]
+
+export const nftFixtures = nftListSchema.parse(
+  baseNftFixtures.map((nft, index) => ({
+    ...nft,
+    images: [nft.image, nft.image.replace(/\.webp$/, '-detail.webp')],
+    rating: ratings[index] ?? 4.5,
+    reviewCount: 12 + index * 4,
+    createdAt: new Date(Date.UTC(2026, 10, 11 - index)).toISOString(),
+    trendingScore: 1_000 - index * 23,
+  })),
+)

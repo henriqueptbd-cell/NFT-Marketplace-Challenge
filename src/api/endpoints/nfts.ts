@@ -1,17 +1,25 @@
 import { z } from 'zod'
 import { apiClient } from '@/api/client'
 import {
+  decimalStringSchema,
   networkSchema,
   nftListSchema,
   nftSchema,
+  nftSortSchema,
   type Network,
   type NFT,
+  type NFTSort,
 } from '@/api/types'
 
 export interface NFTSearchParams {
   query?: string
   collection?: string
+  collections?: string[]
   network?: Network
+  networks?: Network[]
+  priceMin?: string
+  priceMax?: string
+  sort?: NFTSort
   isRare?: boolean
   page?: number
   pageSize?: number
@@ -21,7 +29,12 @@ const nftSearchParamsSchema = z
   .object({
     query: z.string().optional(),
     collection: z.string().optional(),
+    collections: z.array(z.string()).optional(),
     network: networkSchema.optional(),
+    networks: z.array(networkSchema).optional(),
+    priceMin: decimalStringSchema.optional(),
+    priceMax: decimalStringSchema.optional(),
+    sort: nftSortSchema.optional(),
     isRare: z.boolean().optional(),
     page: z.number().int().positive().optional(),
     pageSize: z.number().int().positive().max(100).optional(),
@@ -35,6 +48,7 @@ export async function getNfts(
   const validated = nftSearchParamsSchema.parse(params)
   const { data } = await apiClient.get<unknown>('/nfts', {
     params: validated,
+    paramsSerializer: { indexes: null },
     signal,
   })
   return nftListSchema.parse(data)

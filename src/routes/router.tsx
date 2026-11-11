@@ -5,6 +5,8 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { marketplaceSearchSchema } from '@/lib/validation'
+import { HomePage } from '@/routes/HomePage'
+import { NFTDetailPage } from '@/routes/NFTDetailPage'
 import { RoutePlaceholder } from '@/routes/RoutePlaceholder'
 
 const rootRoute = createRootRoute({
@@ -15,13 +17,13 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   validateSearch: (search) => marketplaceSearchSchema.parse(search),
-  component: RoutePlaceholder,
+  component: HomePage,
 })
 
 const nftRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/nft/$nftId',
-  component: RoutePlaceholder,
+  path: '/nft/$id',
+  component: NFTDetailPage,
 })
 
 const cartRoute = createRoute({

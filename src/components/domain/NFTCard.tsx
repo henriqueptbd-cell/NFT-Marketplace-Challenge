@@ -19,8 +19,8 @@ export function NFTCard({ nft, className, priority = false }: NFTCardProps) {
   return (
     <article className={cn('grid gap-2', className)}>
       <Link
-        to="/nft/$nftId"
-        params={{ nftId: nft.id }}
+        to="/nft/$id"
+        params={{ id: nft.id }}
         aria-label={nft.name}
         className="group relative block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
