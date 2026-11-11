@@ -19,8 +19,13 @@ import { Pagination } from '@/components/ui/pagination'
 import { Select } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNfts } from '@/hooks/useNfts'
+import { useSectionNav } from '@/hooks/useSectionNav'
 import { discoveryCopy } from '@/lib/discovery-copy'
-import type { MarketplaceSearch } from '@/lib/validation'
+import {
+  parseMarketplaceSearch,
+  stripDefaultSearch,
+  type MarketplaceSearch,
+} from '@/lib/validation'
 
 const PAGE_SIZE = 12
 
@@ -39,18 +44,24 @@ const tabSorts = new Map<string, NFTSort>([
 ])
 
 export function HomePage() {
-  const search = useSearch({ from: '/' })
+  const routeSearch = useSearch({ from: '/' })
+  const search = useMemo(
+    () => parseMarketplaceSearch(routeSearch),
+    [routeSearch],
+  )
   const navigate = useNavigate({ from: '/' })
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const { onSectionClick } = useSectionNav()
 
   const updateSearch = useCallback(
     (updates: Partial<MarketplaceSearch>, replace = false) => {
       void navigate({
-        search: (previous) => ({
-          ...previous,
-          ...updates,
-          page: updates.page ?? 1,
-        }),
+        search: (previous) =>
+          stripDefaultSearch({
+            ...previous,
+            ...updates,
+            page: updates.page ?? 1,
+          }),
         replace,
       })
     },
@@ -158,7 +169,7 @@ export function HomePage() {
       <main className="mx-auto max-w-screen-2xl px-4 pb-16 sm:px-6 lg:px-8">
         <section
           id={discoveryCopy.nav.anchors.learn}
-          className="relative my-6 grid min-h-[20rem] items-center gap-8 overflow-hidden rounded-card border border-border bg-gradient-to-br from-surface via-background to-elevated p-6 sm:my-10 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.72fr)] lg:p-14"
+          className="relative my-6 grid min-h-[20rem] scroll-mt-28 items-center gap-8 overflow-hidden rounded-card border border-border bg-gradient-to-br from-surface via-background to-elevated p-6 sm:my-10 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.72fr)] lg:p-14"
         >
           <div className="relative z-10 grid content-center justify-items-start gap-5">
             <p className="text-xs font-semibold tracking-[0.18em] text-primary">
@@ -170,16 +181,21 @@ export function HomePage() {
             <p className="max-w-2xl text-sm leading-7 text-text-secondary sm:text-base">
               {discoveryCopy.hero.description}
             </p>
-            <a
-              href={`/#${discoveryCopy.nav.anchors.marketplace}`}
+            <Link
+              to="/"
+              hash={discoveryCopy.nav.anchors.marketplace}
+              search={stripDefaultSearch(search)}
+              onClick={(event) =>
+                onSectionClick(event, discoveryCopy.nav.anchors.marketplace)
+              }
               className="inline-flex min-h-11 items-center justify-center rounded-button bg-primary px-5 text-sm font-semibold text-on-primary transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               {discoveryCopy.hero.cta}
-            </a>
+            </Link>
           </div>
           <div
             id={discoveryCopy.nav.anchors.creators}
-            className="relative mx-auto w-full max-w-sm"
+            className="relative mx-auto w-full max-w-sm scroll-mt-28"
           >
             {featuredNft ? (
               <Link
@@ -223,7 +239,7 @@ export function HomePage() {
 
         <section
           id={discoveryCopy.nav.anchors.marketplace}
-          className="grid gap-7 py-6 md:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10"
+          className="grid scroll-mt-28 gap-7 py-6 md:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10"
         >
           <aside className="hidden md:block">
             <div className="sticky top-32 rounded-card border border-border bg-surface p-5">

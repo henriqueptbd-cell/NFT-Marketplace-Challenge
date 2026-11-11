@@ -122,6 +122,32 @@ export const walletFormSchema = z
   .strict()
 
 export type MarketplaceSearch = z.infer<typeof marketplaceSearchSchema>
+
+export const defaultMarketplaceSearch: MarketplaceSearch =
+  marketplaceSearchSchema.parse({})
+
+/** Converte um search arbitrário do router no search tipado da Home. */
+export function parseMarketplaceSearch(value: unknown): MarketplaceSearch {
+  const parsed = marketplaceSearchSchema.safeParse(value)
+  return parsed.success ? parsed.data : defaultMarketplaceSearch
+}
+
+/**
+ * Remove os parâmetros que já são o padrão para a URL não ficar poluída
+ * (`/?collections=[]&networks=[]&sort=relevance&page=1`).
+ */
+export function stripDefaultSearch(
+  search: Partial<MarketplaceSearch>,
+): Partial<MarketplaceSearch> {
+  const result: Record<string, unknown> = { ...search }
+  for (const [key, value] of Object.entries(defaultMarketplaceSearch)) {
+    if (JSON.stringify(result[key]) === JSON.stringify(value)) {
+      delete result[key]
+    }
+  }
+  return result as Partial<MarketplaceSearch>
+}
+
 export type LoginFormValues = z.infer<typeof loginFormSchema>
 export type RegisterFormValues = z.infer<typeof registerFormSchema>
 export type ProfileFormValues = z.infer<typeof profileFormSchema>

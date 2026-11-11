@@ -17,6 +17,8 @@ export const discoveryCopy = {
     label: 'Buscar NFTs',
     placeholder: 'Buscar por nome, coleção ou item',
     submit: 'Buscar',
+    open: 'Abrir busca',
+    close: 'Fechar busca',
   },
   header: {
     cart: 'Carrinho',

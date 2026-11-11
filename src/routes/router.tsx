@@ -15,6 +15,8 @@ import { WalletsPage } from '@/routes/WalletsPage'
 import {
   authRedirectSearchSchema,
   marketplaceSearchSchema,
+  stripDefaultSearch,
+  type MarketplaceSearch,
 } from '@/lib/validation'
 
 const rootRoute = createRootRoute({
@@ -24,7 +26,9 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  validateSearch: (search) => marketplaceSearchSchema.parse(search),
+  // Defaults ficam de fora da URL; a Home os reaplica ao consumir.
+  validateSearch: (search): Partial<MarketplaceSearch> =>
+    stripDefaultSearch(marketplaceSearchSchema.parse(search)),
   component: HomePage,
 })
 
