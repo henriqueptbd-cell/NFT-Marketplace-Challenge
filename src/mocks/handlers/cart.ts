@@ -6,9 +6,10 @@ import {
   createId,
   nowIso,
   readJsonBody,
+  requireCartOwner,
   requireUser,
 } from '@/mocks/handlers/common'
-import { getActiveMockScenario } from '@/mocks/scenarios'
+import { consumeMockScenario, getActiveMockScenario } from '@/mocks/scenarios'
 import { getMockState, updateMockState } from '@/mocks/store'
 
 const cartItemInputSchema = z
@@ -19,12 +20,12 @@ const quantityInputSchema = z
   .strict()
 const couponInputSchema = z.object({ code: z.string().trim().min(1) }).strict()
 
-function getOrCreateCart(userId: string) {
-  const existing = getMockState().carts.find((cart) => cart.userId === userId)
+function getOrCreateCart(ownerId: string) {
+  const existing = getMockState().carts.find((cart) => cart.userId === ownerId)
   if (existing) return existing
   const cart = cartSchema.parse({
     id: createId('cart'),
-    userId,
+    userId: ownerId,
     items: [],
     couponCode: null,
     updatedAt: nowIso(),
@@ -37,12 +38,12 @@ function getOrCreateCart(userId: string) {
 }
 
 function setCart(
-  userId: string,
+  ownerId: string,
   mutate: (cart: ReturnType<typeof cartSchema.parse>) => void,
 ) {
-  let updated = getOrCreateCart(userId)
+  let updated = getOrCreateCart(ownerId)
   updateMockState((draft) => {
-    const index = draft.carts.findIndex((cart) => cart.userId === userId)
+    const index = draft.carts.findIndex((cart) => cart.userId === ownerId)
     if (index < 0) return
     const cart = draft.carts[index]
     if (!cart) return
@@ -54,25 +55,29 @@ function setCart(
   return updated
 }
 
+function isValidGuestCartId(value: string | null): value is string {
+  return Boolean(value && /^[a-f\d-]{36}$/i.test(value.trim()))
+}
+
 export const cartHandlers = [
   http.get('/api/cart', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
-    const cart = getOrCreateCart(user.id)
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
+    const cart = getOrCreateCart(ownerId)
     if (getActiveMockScenario() === 'empty')
       return HttpResponse.json({ ...cart, items: [], couponCode: null })
     return HttpResponse.json(cart)
   }),
 
   http.post('/api/cart/items', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     const parsed = await readJsonBody(request, cartItemInputSchema)
     if (!parsed.ok) return parsed.response
     const state = getMockState()
     const nft = state.nfts.find((item) => item.id === parsed.data.nftId)
     if (!nft) return apiErrorResponse(404, 'NOT_FOUND', 'NFT was not found.')
-    const cart = getOrCreateCart(user.id)
+    const cart = getOrCreateCart(ownerId)
     const existing = cart.items.find((item) => item.nftId === nft.id)
     const requestedQuantity = (existing?.quantity ?? 0) + parsed.data.quantity
     if (!nft.edition.isOpen && requestedQuantity > nft.edition.available) {
@@ -82,7 +87,7 @@ export const cartHandlers = [
         'Requested quantity exceeds available editions.',
       )
     }
-    const updated = setCart(user.id, (draft) => {
+    const updated = setCart(ownerId, (draft) => {
       const item = draft.items.find((entry) => entry.nftId === nft.id)
       if (item) {
         item.quantity = requestedQuantity
@@ -99,13 +104,13 @@ export const cartHandlers = [
   }),
 
   http.patch('/api/cart/items/:nftId', async ({ request, params }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     const parsed = await readJsonBody(request, quantityInputSchema)
     if (!parsed.ok) return parsed.response
     const nftId = String(params.nftId)
     const state = getMockState()
-    const cart = state.carts.find((item) => item.userId === user.id)
+    const cart = state.carts.find((item) => item.userId === ownerId)
     const item = cart?.items.find((entry) => entry.nftId === nftId)
     if (!item)
       return apiErrorResponse(404, 'NOT_FOUND', 'Cart item was not found.')
@@ -119,7 +124,7 @@ export const cartHandlers = [
       )
     }
     return HttpResponse.json(
-      setCart(user.id, (draft) => {
+      setCart(ownerId, (draft) => {
         const target = draft.items.find((entry) => entry.nftId === nftId)
         if (target) {
           target.quantity = parsed.data.quantity
@@ -130,25 +135,25 @@ export const cartHandlers = [
   }),
 
   http.delete('/api/cart/items/:nftId', async ({ request, params }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     const nftId = String(params.nftId)
-    const cart = getMockState().carts.find((item) => item.userId === user.id)
+    const cart = getMockState().carts.find((item) => item.userId === ownerId)
     if (!cart?.items.some((item) => item.nftId === nftId)) {
       return apiErrorResponse(404, 'NOT_FOUND', 'Cart item was not found.')
     }
     return HttpResponse.json(
-      setCart(user.id, (draft) => {
+      setCart(ownerId, (draft) => {
         draft.items = draft.items.filter((item) => item.nftId !== nftId)
       }),
     )
   }),
 
   http.delete('/api/cart', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     return HttpResponse.json(
-      setCart(user.id, (draft) => {
+      setCart(ownerId, (draft) => {
         draft.items = []
         draft.couponCode = null
       }),
@@ -156,11 +161,11 @@ export const cartHandlers = [
   }),
 
   http.post('/api/cart/coupon', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     const parsed = await readJsonBody(request, couponInputSchema)
     if (!parsed.ok) return parsed.response
-    if (getActiveMockScenario() === 'coupon-expired') {
+    if (consumeMockScenario('coupon-expired')) {
       return apiErrorResponse(422, 'COUPON_EXPIRED', 'The coupon has expired.')
     }
     const code = parsed.data.code.toUpperCase()
@@ -175,19 +180,82 @@ export const cartHandlers = [
       return apiErrorResponse(422, 'COUPON_EXPIRED', 'The coupon has expired.')
     }
     return HttpResponse.json(
-      setCart(user.id, (draft) => {
+      setCart(ownerId, (draft) => {
         draft.couponCode = coupon.code
       }),
     )
   }),
 
   http.delete('/api/cart/coupon', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     return HttpResponse.json(
-      setCart(user.id, (draft) => {
+      setCart(ownerId, (draft) => {
         draft.couponCode = null
       }),
     )
+  }),
+
+  http.post('/api/cart/merge', async ({ request }) => {
+    const user = await requireUser(request)
+    if (user instanceof Response) return user
+    const guestCartId = request.headers.get('X-Guest-Cart-Id')?.trim() ?? null
+    if (!isValidGuestCartId(guestCartId)) {
+      return apiErrorResponse(
+        400,
+        'BAD_REQUEST',
+        'A valid guest cart ID is required.',
+      )
+    }
+
+    const guestOwnerId = `guest:${guestCartId}`
+    const state = getMockState()
+    const guestCart = state.carts.find((cart) => cart.userId === guestOwnerId)
+    const userCart = getOrCreateCart(user.id)
+    if (!guestCart || guestCart.items.length === 0) {
+      return HttpResponse.json(userCart)
+    }
+
+    const validGuestCoupon = guestCart.couponCode
+      ? state.coupons.find(
+          (coupon) =>
+            coupon.code === guestCart.couponCode &&
+            coupon.active &&
+            coupon.expiresAt > nowIso(),
+        )
+      : undefined
+    let mergedCart = userCart
+    updateMockState((draft) => {
+      const target = draft.carts.find((cart) => cart.userId === user.id)
+      const source = draft.carts.find((cart) => cart.userId === guestOwnerId)
+      if (!target || !source) return
+      for (const guestItem of source.items) {
+        const nft = draft.nfts.find((item) => item.id === guestItem.nftId)
+        const priceString = nft?.priceString ?? guestItem.priceString
+        const existing = target.items.find(
+          (item) => item.nftId === guestItem.nftId,
+        )
+        if (existing) {
+          existing.quantity += guestItem.quantity
+          existing.priceString = priceString
+        } else {
+          target.items.push({
+            ...guestItem,
+            priceString,
+          })
+        }
+      }
+      if (!target.couponCode && validGuestCoupon) {
+        target.couponCode = validGuestCoupon.code
+      }
+      target.updatedAt = nowIso()
+      target.version += 1
+      source.items = []
+      source.couponCode = null
+      source.updatedAt = nowIso()
+      source.version += 1
+      mergedCart = cartSchema.parse(target)
+    })
+    return HttpResponse.json(mergedCart)
   }),
 ]

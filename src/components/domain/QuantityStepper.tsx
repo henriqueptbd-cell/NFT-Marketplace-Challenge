@@ -12,6 +12,7 @@ export interface QuantityStepperProps {
     current: string
   }
   disabled?: boolean
+  describedBy?: string
 }
 
 export function QuantityStepper({
@@ -21,6 +22,7 @@ export function QuantityStepper({
   onChange,
   labels,
   disabled = false,
+  describedBy,
 }: QuantityStepperProps) {
   return (
     <div className="inline-flex items-center gap-2">
@@ -28,8 +30,9 @@ export function QuantityStepper({
         variant="outline"
         size="icon"
         aria-label={labels.decrease}
+        aria-describedby={describedBy}
         disabled={disabled || value <= min}
-        onClick={() => onChange(Math.max(min, value - 1))}
+        onClick={() => onChange(value > max ? max : Math.max(min, value - 1))}
       >
         <Minus aria-hidden="true" className="size-4" />
       </Button>
@@ -44,6 +47,7 @@ export function QuantityStepper({
         variant="outline"
         size="icon"
         aria-label={labels.increase}
+        aria-describedby={describedBy}
         disabled={disabled || value >= max}
         onClick={() => onChange(Math.min(max, value + 1))}
       >

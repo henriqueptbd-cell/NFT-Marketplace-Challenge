@@ -1,7 +1,7 @@
 # Kurio — extração do design system
 
 > **Fonte:** `FrontendChallenge.pdf`, 15 páginas de screens exportados do Figma.
-> **Escopo:** documentação visual somente; nenhum asset foi extraído e nenhum código de produto foi criado. Os arquivos de imagem do NFT devem ser fornecidos depois pelo usuário em `public/nfts/`.
+> **Escopo:** registro da extração visual original do PDF. Os assets não foram extraídos; os arquivos de imagem do NFT devem ser fornecidos pelo usuário em `public/nfts/`. A implementação do produto fica em `src/`.
 >
 > **Confiabilidade das medidas:** o PDF é uma exportação rasterizada, não contém tokens nem metadados de fonte. Os hex abaixo foram estimados pela amostragem das páginas renderizadas (com pequenas variações por compressão); tamanhos, pesos, radii e espaçamentos são aproximações visuais em pixels CSS. Confirmar esses valores no Figma antes de tratá-los como tokens exatos.
 

@@ -4,12 +4,13 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 import { HomePage } from '@/routes/HomePage'
+import { CartPage } from '@/routes/CartPage'
+import { CheckoutPage } from '@/routes/CheckoutPage'
 import { LoginPage } from '@/routes/LoginPage'
 import { NFTDetailPage } from '@/routes/NFTDetailPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { RegisterPage } from '@/routes/RegisterPage'
 import { RootLayout } from '@/routes/RootLayout'
-import { RoutePlaceholder } from '@/routes/RoutePlaceholder'
 import { WalletsPage } from '@/routes/WalletsPage'
 import {
   authRedirectSearchSchema,
@@ -36,13 +37,13 @@ const nftRoute = createRoute({
 const cartRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cart',
-  component: RoutePlaceholder,
+  component: CartPage,
 })
 
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/checkout',
-  component: RoutePlaceholder,
+  component: CheckoutPage,
 })
 
 const loginRoute = createRoute({

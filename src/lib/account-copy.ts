@@ -20,6 +20,10 @@ export const accountCopy = {
     loginError:
       'Não foi possível entrar. Confira seus dados e tente novamente.',
     registerError: 'Não foi possível criar a conta. Tente novamente.',
+    cartMergeError:
+      'Sua sessão foi iniciada, mas o carrinho não sincronizou. Seus itens continuam preservados; tente novamente.',
+    cartMergeRetry: 'Tentar sincronizar carrinho',
+    cartMergeRetrying: 'Sincronizando carrinho…',
   },
   common: {
     home: 'Voltar ao marketplace',

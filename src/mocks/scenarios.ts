@@ -29,6 +29,12 @@ export function isMockScenario(name: MockScenario): boolean {
   return getActiveMockScenario() === name
 }
 
+export function consumeMockScenario(name: MockScenario): boolean {
+  if (!isMockScenario(name)) return false
+  setMockScenario('default')
+  return true
+}
+
 if (typeof window !== 'undefined') {
   const configuredScenario = mockScenarioSchema.safeParse(
     import.meta.env.VITE_MOCK_SCENARIO,

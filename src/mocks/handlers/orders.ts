@@ -8,7 +8,7 @@ import {
   readJsonBody,
   requireUser,
 } from '@/mocks/handlers/common'
-import { getActiveMockScenario } from '@/mocks/scenarios'
+import { consumeMockScenario, getActiveMockScenario } from '@/mocks/scenarios'
 import { publishMockSocket } from '@/mocks/socket-bus'
 import { getMockState, nextMockVersion, updateMockState } from '@/mocks/store'
 
@@ -154,7 +154,7 @@ export const orderHandlers = [
     })
     publishOrderUpdate(order.id)
 
-    if (getActiveMockScenario() === 'timeout-after-order-create') {
+    if (consumeMockScenario('timeout-after-order-create')) {
       return apiErrorResponse(
         500,
         'TIMEOUT_AFTER_CREATE',
@@ -206,7 +206,7 @@ export const orderHandlers = [
       )
     if (order.status !== 'pending') return HttpResponse.json(order)
 
-    const declined = getActiveMockScenario() === 'payment-declined'
+    const declined = consumeMockScenario('payment-declined')
     const updatedOrder = orderSchema.parse({
       ...order,
       status: declined ? 'declined' : 'confirmed',

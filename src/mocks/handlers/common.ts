@@ -2,7 +2,7 @@ import { HttpResponse } from 'msw'
 import type { ZodType } from 'zod'
 import type { ApiError, User } from '@/api/types'
 import { getMockState, incrementMockRequestCount } from '@/mocks/store'
-import { getActiveMockScenario } from '@/mocks/scenarios'
+import { consumeMockScenario, getActiveMockScenario } from '@/mocks/scenarios'
 
 export const SESSION_COOKIE_NAME = 'kurio_session'
 
@@ -48,7 +48,7 @@ export async function hashSessionCredential(
 export async function readAuthenticatedUser(
   request: Request,
 ): Promise<User | null> {
-  if (getActiveMockScenario() === 'session-expired') return null
+  if (consumeMockScenario('session-expired')) return null
   const credential = readSessionCredential(request)
   if (!credential) return null
   const credentialHash = await hashSessionCredential(credential)
@@ -77,6 +77,21 @@ export async function requireUser(request: Request): Promise<User | Response> {
     (await readAuthenticatedUser(request)) ??
     apiErrorResponse(401, 'UNAUTHORIZED', 'A valid session is required.')
   )
+}
+
+export async function requireCartOwner(
+  request: Request,
+): Promise<string | Response> {
+  const user = await readAuthenticatedUser(request)
+  if (user) return user.id
+  if (readSessionCredential(request)) {
+    return apiErrorResponse(401, 'UNAUTHORIZED', 'A valid session is required.')
+  }
+  const guestCartId = request.headers.get('X-Guest-Cart-Id')?.trim()
+  if (guestCartId && /^[a-f\d-]{36}$/i.test(guestCartId)) {
+    return `guest:${guestCartId}`
+  }
+  return apiErrorResponse(401, 'UNAUTHORIZED', 'A cart session is required.')
 }
 
 export async function readJsonBody<T>(

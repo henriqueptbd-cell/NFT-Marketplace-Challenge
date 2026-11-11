@@ -1,49 +1,43 @@
-# Arquitetura e Decisões de Engenharia
+# Arquitetura e decisões de engenharia
 
-Este documento detalha as decisões técnicas, a gestão de estados, políticas de concorrência e eventuais desvios do design original (Figma) adotados na construção do NFT Marketplace.
+Este documento registra as decisões efetivamente implementadas no frontend Kurio e as adaptações às telas do Figma. O PDF continua sendo a referência visual; `docs/design-system.md` lista as medidas estimadas e lacunas que exigem validação.
 
-## 1. Gestão de Estado e Estratégia de Cache (TanStack Query)
+## 1. Estado remoto e cache
 
-O estado remoto é o coração da aplicação. Não utilizamos estado global (`Context` ou `Zustand`) para dados que pertencem ao servidor (como listas de NFTs ou carrinho). Tudo passa pelo TanStack Query.
+TanStack Query é a fonte de verdade no cliente para NFTs, favoritos, perfil, carteiras, carrinho, cotações e pedidos. Componentes de domínio são apresentacionais e recebem props tipadas; não importam fixtures. Estado local é reservado a drafts de formulário, seleção de carteira, abertura de modal e tentativas temporárias.
 
-*   **Cache Time vs Stale Time:** Listagens de catálogo possuem um `staleTime` de 30 segundos, pois os preços variam. Dados estáticos de perfil de usuário possuem um `staleTime` estendido.
-*   **Invalidação Coerente:** Ao realizar um pedido com sucesso, apenas as *query keys* pertinentes (`['cart']` e `['nft', id]`) são invalidadas, acionando o *refetch* automático sem recarregar a tela.
-*   **Atualização Otimista:** Implementada no fluxo de "Favoritar NFT". A UI responde imediatamente, e caso a mutation falhe (HTTP 500 simulado no MSW), o cache sofre *rollback* automático para a versão anterior.
+As mutations do carrinho substituem o cache `['cart']` com a resposta da API e invalidam cotações. A compra confirmada invalida carrinho, NFTs e pedidos sem recarregar a página. As consultas passam `AbortSignal` aos endpoints quando aplicável. O catálogo mantém dados anteriores durante refetch; skeletons têm dimensões estáveis para evitar layout shift.
 
-## 2. Reconciliação entre REST e Socket.IO
+Valores ETH são strings decimais ponta a ponta. Subtotais e totais são calculados com helpers de unidades inteiras/`BigInt`; nenhum componente usa aritmética de ponto flutuante para dinheiro.
 
-Um dos maiores desafios técnicos abordados foi evitar *race conditions* (condições de corrida) entre os eventos de WebSockets e as chamadas REST.
+## 2. REST e Socket.IO
 
-*   Quando o evento `nft.updated` é recebido, o payload (novo preço e disponibilidade) é interceptado.
-*   Em vez de substituir o dado cegamente, comparamos a "versão" (timestamp) do evento. Se for mais recente, usamos `queryClient.setQueryData` para atualizar o cache do TanStack silenciosamente.
-*   **Recuperação (Reconexão):** Se o Socket.IO desconectar temporariamente, ao reconectar, um gatilho faz *refetch* ativo das rotas de carrinho e checkout na API REST, garantindo que o usuário não finalize um pedido com preço obsoleto após um *blind spot* da rede.
+O cliente Axios adiciona `X-Guest-Cart-Id` para identificar o carrinho de visitante e inclui cookies (`withCredentials`). O interceptor de resposta não redireciona: para `401`, apenas emite evento global. `useAuthError`, no layout raiz, limpa sessão/cache e subscriptions realtime e encaminha para `/login`, preservando caminho, query e hash.
 
-## 3. Carrinho de Compras, Idempotência e Pedidos
+O Socket.IO tipa `nft.updated` e `order.updated` como `{ id, version, data }`. A UI ignora versões repetidas ou mais antigas. Atualizações de NFT atualizam o cache da entidade e invalidam carrinho/cotação; atualizações de pedido atualizam a query do pedido e podem concluir a tela de confirmação. Na reconexão, checkout refaz as queries ativas de carrinho, perfil, carteiras e cotação.
 
-*   **Persistência do Carrinho:** Visitantes deslogados possuem seu carrinho gerenciado localmente. Ao realizar o login, ocorre o *merge* das informações com a sessão autenticada, preservando a intenção de compra.
-*   **Idempotência no Checkout:** A requisição de finalização de pedido envia um cabeçalho `Idempotency-Key` (gerado via UUID no front-end). Se a conexão cair após o clique e o usuário tentar reenviar o formulário, a API (MSW) entende que é o mesmo pedido e devolve o status já processado, evitando cobrança duplicada.
-*   **Validação em Trânsito:** Se um item do carrinho for comprado por outro usuário (esgotar a edição), o carrinho exibe um alerta de indisponibilidade e trava a finalização até o usuário remover o item inválido.
+## 3. Carrinho de visitante, checkout e pedidos
 
-## 4. Política de Sessão e Autenticação
+O carrinho é sempre gerenciado pela API mockada, inclusive antes do login. O browser persiste somente o UUID de visitante; MSW mantém carrinho, quantidades e cupom no store persistido `msw:state:v1`. `POST /cart/merge`, chamado após login/registro, copia todas as linhas para a conta e só então esvazia o guest cart. Estoque insuficiente ou NFT removido não bloqueia o merge: a linha permanece visível na conta com alerta para ajuste/remoção, e o checkout fica bloqueado até correção. Falha de API após autenticação mostra feedback e permite retry explícito. O cookie inválido/expirado recebe `401`, enquanto uma requisição sem cookie pode seguir como visitante com `X-Guest-Cart-Id`.
 
-A sessão é controlada via token persistido de forma segura para recuperação após *refresh*. 
-*   Se um requisição retornar `401 Unauthorized` (simulado por expiração), a interceptação do Axios captura o erro, armazena a rota atual, redireciona para `/login`, e após autenticação, devolve o usuário ao ponto exato onde estava (ex: na etapa final do Checkout).
-*   Eventos e `subscriptions` do Socket.IO são eliminados rigorosamente na rotina de *logout* para prevenir vazamento de dados caso outra conta seja logada na mesma máquina.
+No checkout, a carteira escolhida altera a chave da cotação e recalcula taxa/total via `POST /quote`. Uma cotação vencida ou conflitos de preço, disponibilidade e cupom bloqueiam a confirmação até a pessoa revisar/atualizar a compra. Os cenários pontuais do MSW deixam preço/estoque alterados no store e retornam ao cenário default após o erro para possibilitar recuperação real da tela.
 
-## 5. Mocking de Rede (MSW) e Contratos REST
+Cada tentativa de compra recebe UUID em `Idempotency-Key`. `quoteId`, `walletId` e chave são guardados na sessão do browser durante retries, associados ao usuário. Após timeout, o reenvio preserva o mesmo body/chave; o servidor mock retorna o pedido existente, sem duplicá-lo. A confirmação usa o snapshot congelado do pedido. `confirmed` limpa o carrinho e abre modal acessível; `declined` mantém feedback recuperável e permite uma nova tentativa.
 
-A camada de MSW foi arquitetada não apenas para prover dados, mas para simular regras de negócio estritas do servidor.
-*   **Isolamento:** Componentes React e o cliente Axios não conhecem os *fixtures* de dados falsos. Eles enxergam uma API real, garantindo que o código base é de produção.
-*   **Contratos:** Todas as respostas (sucesso, erro de validação, sessão inválida) respeitam rigorosamente os tipos TypeScript criados na pasta `src/api/types`.
+## 4. Sessão e autenticação
 
-## 6. Acessibilidade e UX (Desvios e Adaptações)
+A autenticação usa cookie de sessão simulado pelo MSW. O handler envia `Set-Cookie` com atributos de sessão e, no modo de mock, há uma ponte de browser para simular o comportamento do cookie. O cliente persiste apenas metadados validados de `User` em `localStorage`; não persiste senha ou token de sessão nesse storage. `rememberMe` altera a expiração da sessão de demonstração.
 
-O layout do Figma foi respeitado nos critérios de hierarquia, tipografia e respiro. No entanto, foram feitas adaptações focadas em Acessibilidade (a11y) baseadas nas análises do Lighthouse e boas práticas:
+`useAuthSession` recupera usuário/sessão após refresh. Ao receber `401`, o hook raiz remove os metadados do usuário, limpa o cache, encerra realtime e redireciona preservando a rota anterior; o identificador e os dados do carrinho convidado são mantidos. Logout também limpa o cache, remove listeners/conexão Socket.IO e retorna à Home.
 
-1.  **Foco:** Foram adicionados *outlines* visíveis na navegação por teclado (Tab) não previstos no design original.
-2.  **Skeletons:** Implementados *Shimmer Effects* fixos baseados nas dimensões reais das imagens para evitar *Cumulative Layout Shift* (CLS) durante carregamentos assíncronos.
-3.  **Comentários do Figma:** Regras de interação descritas nas anotações do Figma foram incorporadas na lógica dos componentes e validadas nos testes do Playwright.
-4.  **Escopo do Desafio:** Páginas listadas como fora de escopo (como Suporte e Ofertas) foram implementadas com botões neutros não-clicáveis, evitando confusão para o usuário final.
+## 5. MSW e contratos
 
----
-*Nota: Este projeto foi estruturado, desenvolvido e testado dentro de uma janela restrita de execução, priorizando arquitetura sólida, gestão de estado robusta e resiliência de UI em detrimento de micro-interações animadas.*
+A camada MSW simula regras de negócio, não apenas fixtures: valida disponibilidade, sessão, carteira, cupom, cotação e idempotência. Respostas e erros são validados contra schemas Zod/types em `src/api/types`. Componentes React não conhecem os dados seed; os handlers/fixtures são a fronteira do mock. A lista completa de endpoints, payloads, respostas e cenários está em `README.md`.
+
+Cenários de falha de uma operação são consumidos no primeiro disparo para testar a recuperação da interface. Cenários contínuos (`empty`, `slow-3s`, `flaky-500` e `out-of-order`) permanecem ativos até reset/seleção de outro cenário.
+
+## 6. Acessibilidade e adaptação visual
+
+Foco visível, labels associados, erros ligados por `aria-describedby`, mensagens `role="alert"`, estados `role="status"`, rótulos para botões-ícone e redução de movimento são tratados como requisitos de interface. Dialog/Drawer usam primitivos acessíveis para foco/teclado. A sidebar de settings torna-se drawer em mobile; carrinho e checkout reorganizam conteúdo e CTA para telas estreitas.
+
+Os tokens e layouts são aproximações extraídas de PDF rasterizado, não metadados originais do Figma. Inputs de carteira são simulados — não há integração com extensão ou WalletConnect — e `transactionId`/explorer são dados de demonstração, não transação on-chain real. As telas sem estado visual definido no PDF e as limitações restantes estão registradas em `docs/design-system.md`.

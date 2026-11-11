@@ -22,6 +22,12 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+export function apiErrorCode(error: unknown): string | null {
+  if (!axios.isAxiosError<unknown>(error)) return null
+  const parsed = apiErrorSchema.safeParse(error.response?.data)
+  return parsed.success ? parsed.data.code : null
+}
+
 export function zodFieldErrors(error: ZodError): Record<string, string> {
   const fieldErrors: Record<string, string> = {}
   for (const issue of error.issues) {

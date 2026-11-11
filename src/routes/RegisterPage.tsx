@@ -12,7 +12,8 @@ import {
 } from '@/lib/api-errors'
 import { resolveInternalRedirect } from '@/lib/account-routing'
 import { authSessionQueryKey } from '@/hooks/useAuth'
-import { register } from '@/api/endpoints'
+import { cartQueryKey } from '@/hooks/useCart'
+import { mergeGuestCart, register } from '@/api/endpoints'
 import { registerFormSchema, type RegisterFormValues } from '@/lib/validation'
 
 const initialValues: RegisterFormValues = {
@@ -28,10 +29,20 @@ export function RegisterPage() {
   const [values, setValues] = useState(initialValues)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState('')
+  const [mergePending, setMergePending] = useState(false)
+  const [mergeRetrying, setMergeRetrying] = useState(false)
   const mutation = useMutation({
     mutationFn: register,
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       queryClient.setQueryData(authSessionQueryKey, response)
+      try {
+        const cart = await mergeGuestCart()
+        queryClient.setQueryData(cartQueryKey, cart)
+      } catch {
+        setMergePending(true)
+        setFormError(accountCopy.auth.cartMergeError)
+        return
+      }
       window.location.assign(resolveInternalRedirect(search.redirect))
     },
     onError: (error) => {
@@ -73,6 +84,21 @@ export function RegisterPage() {
       email: parsed.data.email,
       password: parsed.data.password,
     })
+  }
+
+  async function retryCartMerge() {
+    setMergeRetrying(true)
+    setFormError('')
+    try {
+      const cart = await mergeGuestCart()
+      queryClient.setQueryData(cartQueryKey, cart)
+      setMergePending(false)
+      window.location.assign(resolveInternalRedirect(search.redirect))
+    } catch {
+      setFormError(accountCopy.auth.cartMergeError)
+    } finally {
+      setMergeRetrying(false)
+    }
   }
 
   return (
@@ -126,11 +152,28 @@ export function RegisterPage() {
             {formError}
           </p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={mutation.isPending || mergePending}
+        >
           {mutation.isPending
             ? accountCopy.auth.registerPending
             : accountCopy.auth.registerAction}
         </Button>
+        {mergePending ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={mergeRetrying}
+            onClick={() => void retryCartMerge()}
+          >
+            {mergeRetrying
+              ? accountCopy.auth.cartMergeRetrying
+              : accountCopy.auth.cartMergeRetry}
+          </Button>
+        ) : null}
       </form>
       <p className="mt-6 text-center text-sm text-text-secondary">
         <Link

@@ -17,7 +17,7 @@ import {
   requireUser,
 } from '@/mocks/handlers/common'
 import { networkFeeFixtures } from '@/mocks/fixtures/network-fees'
-import { getActiveMockScenario } from '@/mocks/scenarios'
+import { consumeMockScenario } from '@/mocks/scenarios'
 import { publishMockSocket } from '@/mocks/socket-bus'
 import { getMockState, nextMockVersion, updateMockState } from '@/mocks/store'
 
@@ -65,7 +65,7 @@ export const quoteHandlers = [
         )
     }
 
-    if (getActiveMockScenario() === 'price-changed-mid-checkout') {
+    if (consumeMockScenario('price-changed-mid-checkout')) {
       const firstItem = cart.items[0]
       const nft = firstItem
         ? state.nfts.find((item) => item.id === firstItem.nftId)
@@ -90,7 +90,7 @@ export const quoteHandlers = [
       }
     }
 
-    if (getActiveMockScenario() === 'edition-sold-out') {
+    if (consumeMockScenario('edition-sold-out')) {
       const firstItem = cart.items[0]
       if (firstItem) {
         updateMockState((draft) => {

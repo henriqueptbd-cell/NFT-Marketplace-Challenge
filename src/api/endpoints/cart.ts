@@ -15,6 +15,11 @@ export async function getCart(): Promise<Cart> {
   return cartSchema.parse(data)
 }
 
+export async function mergeGuestCart(): Promise<Cart> {
+  const { data } = await apiClient.post<unknown>('/cart/merge', {})
+  return cartSchema.parse(data)
+}
+
 export async function addCartItem(
   input: z.infer<typeof addCartItemSchema>,
 ): Promise<Cart> {

@@ -3,6 +3,7 @@ import { userSchema, type User } from '@/api/types/user'
 
 export const CURRENT_USER_STORAGE_KEY = 'kurio:user:v1'
 export const LEGACY_SESSION_STORAGE_KEY = 'kurio:session:v1'
+export const GUEST_CART_ID_STORAGE_KEY = 'kurio:guest-cart-id:v1'
 export const MOCK_SESSION_COOKIE_NAME = 'kurio_session'
 export const USER_STORAGE_EVENT = 'kurio:user-changed'
 export const API_UNAUTHORIZED_EVENT = 'kurio:api-unauthorized'
@@ -17,6 +18,19 @@ export function readPersistedUser(): User | null {
     return user.success ? user.data : null
   } catch {
     return null
+  }
+}
+
+export function getGuestCartId(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    const current = window.localStorage.getItem(GUEST_CART_ID_STORAGE_KEY)
+    if (current) return current
+    const created = crypto.randomUUID()
+    window.localStorage.setItem(GUEST_CART_ID_STORAGE_KEY, created)
+    return created
+  } catch {
+    return crypto.randomUUID()
   }
 }
 
@@ -64,6 +78,12 @@ export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+})
+
+apiClient.interceptors.request.use((config) => {
+  const guestCartId = getGuestCartId()
+  if (guestCartId) config.headers.set('X-Guest-Cart-Id', guestCartId)
+  return config
 })
 
 function isPublicAuthRequest(url: string | undefined): boolean {
