@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { z } from 'zod'
-import { networkSchema, walletSchema } from '@/api/types'
+import { networkSchema, walletSchema, walletTypeSchema } from '@/api/types'
 import {
   apiErrorResponse,
   createId,
@@ -13,22 +13,24 @@ import { getMockState, updateMockState } from '@/mocks/store'
 
 const walletInputSchema = z
   .object({
-    name: z.string().trim().min(1),
-    address: z.string().trim().min(1),
+    name: z.string().trim().min(1).max(64),
+    nickname: z.string().trim().min(1).max(48),
+    address: z
+      .string()
+      .trim()
+      .regex(/^0x[a-fA-F0-9]{40}$/),
     network: networkSchema,
+    type: walletTypeSchema,
+    ens: z.string().nullable(),
+    referralCode: z.string().nullable(),
+    email: z.string().trim().email(),
   })
   .strict()
-const walletPatchSchema = z
-  .object({
-    name: z.string().trim().min(1).optional(),
-    address: z.string().trim().min(1).optional(),
-    network: networkSchema.optional(),
-  })
-  .strict()
+const walletPatchSchema = walletInputSchema.partial().strict()
 
 export const walletHandlers = [
-  http.get('/api/wallets', ({ request }) => {
-    const user = requireUser(request)
+  http.get('/api/wallets', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
     return HttpResponse.json(
@@ -37,7 +39,7 @@ export const walletHandlers = [
   }),
 
   http.post('/api/wallets', async ({ request }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, walletInputSchema)
     if (!parsed.ok) return parsed.response
@@ -46,7 +48,7 @@ export const walletHandlers = [
       state.wallets.some(
         (item) =>
           item.userId === user.id &&
-          item.address === parsed.data.address &&
+          item.address.toLowerCase() === parsed.data.address.toLowerCase() &&
           item.network === parsed.data.network,
       )
     ) {
@@ -54,6 +56,7 @@ export const walletHandlers = [
         409,
         'WALLET_ALREADY_CONNECTED',
         'This wallet is already connected.',
+        { address: ['Esta carteira já está conectada.'] },
       )
     }
     const wallet = walletSchema.parse({
@@ -72,7 +75,7 @@ export const walletHandlers = [
   }),
 
   http.patch('/api/wallets/:walletId', async ({ request, params }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, walletPatchSchema)
     if (!parsed.ok) return parsed.response
@@ -86,6 +89,21 @@ export const walletHandlers = [
         'FORBIDDEN',
         'Wallet belongs to another user.',
       )
+    const duplicate = getMockState().wallets.some(
+      (item) =>
+        item.id !== walletId &&
+        item.userId === user.id &&
+        item.network === (parsed.data.network ?? wallet.network) &&
+        item.address.toLowerCase() ===
+          (parsed.data.address ?? wallet.address).toLowerCase(),
+    )
+    if (duplicate)
+      return apiErrorResponse(
+        409,
+        'WALLET_ALREADY_CONNECTED',
+        'Esta carteira já está conectada.',
+        { address: ['Esta carteira já está conectada.'] },
+      )
     const updated = walletSchema.parse({ ...wallet, ...parsed.data })
     updateMockState((draft) => {
       const index = draft.wallets.findIndex((item) => item.id === walletId)
@@ -94,8 +112,8 @@ export const walletHandlers = [
     return HttpResponse.json(updated)
   }),
 
-  http.delete('/api/wallets/:walletId', ({ request, params }) => {
-    const user = requireUser(request)
+  http.delete('/api/wallets/:walletId', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const walletId = String(params.walletId)
     const state = getMockState()
@@ -127,8 +145,8 @@ export const walletHandlers = [
     return HttpResponse.json({ success: true })
   }),
 
-  http.post('/api/wallets/:walletId/primary', ({ request, params }) => {
-    const user = requireUser(request)
+  http.post('/api/wallets/:walletId/primary', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const walletId = String(params.walletId)
     const wallet = getMockState().wallets.find((item) => item.id === walletId)

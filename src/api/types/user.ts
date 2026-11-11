@@ -8,6 +8,7 @@ export const userSchema = z
     email: z.string().email(),
     role: userRoleSchema,
     displayName: z.string().min(1),
+    username: z.string().min(2).max(32),
     createdAt: z.string().datetime(),
   })
   .strict()
@@ -16,8 +17,10 @@ export const collectorProfileSchema = z
   .object({
     userId: z.string().min(1),
     displayName: z.string().min(1),
+    username: z.string().min(2).max(32),
     email: z.string().email(),
     ens: z.string().nullable(),
+    walletNickname: z.string().max(48),
     avatar: z.string().nullable(),
     bio: z.string(),
     updatedAt: z.string().datetime(),

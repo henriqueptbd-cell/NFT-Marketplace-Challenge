@@ -2,15 +2,22 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  Outlet,
 } from '@tanstack/react-router'
-import { marketplaceSearchSchema } from '@/lib/validation'
 import { HomePage } from '@/routes/HomePage'
+import { LoginPage } from '@/routes/LoginPage'
 import { NFTDetailPage } from '@/routes/NFTDetailPage'
+import { ProfilePage } from '@/routes/ProfilePage'
+import { RegisterPage } from '@/routes/RegisterPage'
+import { RootLayout } from '@/routes/RootLayout'
 import { RoutePlaceholder } from '@/routes/RoutePlaceholder'
+import { WalletsPage } from '@/routes/WalletsPage'
+import {
+  authRedirectSearchSchema,
+  marketplaceSearchSchema,
+} from '@/lib/validation'
 
 const rootRoute = createRootRoute({
-  component: Outlet,
+  component: RootLayout,
 })
 
 const indexRoute = createRoute({
@@ -41,25 +48,27 @@ const checkoutRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  component: RoutePlaceholder,
+  validateSearch: (search) => authRedirectSearchSchema.parse(search),
+  component: LoginPage,
 })
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/register',
-  component: RoutePlaceholder,
+  validateSearch: (search) => authRedirectSearchSchema.parse(search),
+  component: RegisterPage,
 })
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
-  component: RoutePlaceholder,
+  component: ProfilePage,
 })
 
 const walletsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/wallets',
-  component: RoutePlaceholder,
+  component: WalletsPage,
 })
 
 const routeTree = rootRoute.addChildren([

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { addFavorite, getFavorites, removeFavorite } from '@/api/endpoints'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export const favoriteQueryKey = ['favorites'] as const
 
@@ -12,11 +13,13 @@ type FavoriteContext = { previous: string[] | undefined }
 
 export function useFavorite(nftId: string) {
   const queryClient = useQueryClient()
+  const user = useCurrentUser()
   const favoritesQuery = useQuery({
     queryKey: favoriteQueryKey,
     queryFn: async () =>
       (await getFavorites()).map((favorite) => favorite.nftId),
     retry: false,
+    enabled: Boolean(user),
   })
 
   const mutation = useMutation<void, Error, FavoriteMutation, FavoriteContext>({

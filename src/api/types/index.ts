@@ -53,4 +53,9 @@ export {
   type User,
   type UserRole,
 } from '@/api/types/user'
-export { walletSchema, type Wallet } from '@/api/types/wallet'
+export {
+  walletSchema,
+  walletTypeSchema,
+  type Wallet,
+  type WalletType,
+} from '@/api/types/wallet'

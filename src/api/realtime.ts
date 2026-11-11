@@ -17,14 +17,26 @@ export interface ClientToServerEvents {
   'order.subscribe': (orderId: string) => void
 }
 
+let realtimeClient:
+  Socket<ServerToClientEvents, ClientToServerEvents> | undefined
+
 export function createRealtimeClient(): Socket<
   ServerToClientEvents,
   ClientToServerEvents
 > {
+  if (realtimeClient) return realtimeClient
   const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin
-  return io(socketUrl, {
+  realtimeClient = io(socketUrl, {
     path: '/socket.io',
     transports: ['websocket'],
     autoConnect: false,
   }) as unknown as Socket<ServerToClientEvents, ClientToServerEvents>
+  return realtimeClient
+}
+
+export function disconnectRealtimeClient(): void {
+  if (!realtimeClient) return
+  realtimeClient.removeAllListeners()
+  realtimeClient.disconnect()
+  realtimeClient = undefined
 }

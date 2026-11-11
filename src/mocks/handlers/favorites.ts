@@ -5,8 +5,8 @@ import { createId, nowIso } from '@/mocks/handlers/common'
 import { getMockState, updateMockState } from '@/mocks/store'
 
 export const favoriteHandlers = [
-  http.get('/api/favorites', ({ request }) => {
-    const user = requireUser(request)
+  http.get('/api/favorites', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
     return HttpResponse.json(
@@ -16,8 +16,8 @@ export const favoriteHandlers = [
     )
   }),
 
-  http.post('/api/favorites/:nftId', ({ request, params }) => {
-    const user = requireUser(request)
+  http.post('/api/favorites/:nftId', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const state = getMockState()
     const nft = state.nfts.find((item) => item.id === params.nftId)
@@ -39,8 +39,8 @@ export const favoriteHandlers = [
     return HttpResponse.json(favorite, { status: 201 })
   }),
 
-  http.delete('/api/favorites/:nftId', ({ request, params }) => {
-    const user = requireUser(request)
+  http.delete('/api/favorites/:nftId', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const state = getMockState()
     const favorite = state.favorites.find(

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SESSION_STORAGE_KEY } from '@/api/client'
+import { clearPersistedUser } from '@/api/client'
 import {
   cartSchema,
   couponSchema,
@@ -28,6 +28,13 @@ const userCredentialSchema = z
   })
   .strict()
 
+const mockSessionSchema = z
+  .object({
+    ...sessionSchema.shape,
+    cookieHash: z.string().min(1),
+  })
+  .strict()
+
 const idempotencyRecordSchema = z
   .object({
     key: z.string().min(1),
@@ -40,7 +47,7 @@ const idempotencyRecordSchema = z
 const mockStateSchema = z
   .object({
     users: z.array(userCredentialSchema),
-    sessions: z.array(sessionSchema),
+    sessions: z.array(mockSessionSchema),
     profiles: z.array(collectorProfileSchema),
     nfts: nftListSchema,
     favorites: z.array(favoriteSchema),
@@ -69,10 +76,11 @@ const mockStateSchema = z
   .strict()
 
 export type MockUser = User & { password: string }
+export type MockSession = z.infer<typeof mockSessionSchema>
 export type IdempotencyRecord = z.infer<typeof idempotencyRecordSchema>
 export interface MockState {
   users: MockUser[]
-  sessions: z.infer<typeof sessionSchema>[]
+  sessions: MockSession[]
   profiles: CollectorProfile[]
   nfts: z.infer<typeof nftListSchema>
   favorites: z.infer<typeof favoriteSchema>[]
@@ -173,7 +181,7 @@ export function resetMockStore(): void {
   state = createInitialState()
   persistState()
   if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(SESSION_STORAGE_KEY)
+    clearPersistedUser()
     window.dispatchEvent(new CustomEvent('kurio:msw-reset'))
   }
 }

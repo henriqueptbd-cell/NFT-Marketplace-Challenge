@@ -3,7 +3,6 @@ import { expect, test, type Page } from '@playwright/test'
 interface ApiOptions {
   method?: string
   body?: unknown
-  accessToken?: string
   idempotencyKey?: string
 }
 
@@ -30,14 +29,13 @@ async function apiRequest(
         headers.set('Content-Type', 'application/json')
         body = JSON.stringify(requestOptions.body)
       }
-      if (requestOptions.accessToken)
-        headers.set('Authorization', `Bearer ${requestOptions.accessToken}`)
       if (requestOptions.idempotencyKey)
         headers.set('Idempotency-Key', requestOptions.idempotencyKey)
       const response = await fetch(requestPath, {
         method: requestOptions.method ?? 'GET',
         headers,
         body,
+        credentials: 'include',
       })
       const responseBody: unknown = await response.json()
       return { status: response.status, body: responseBody }
@@ -65,7 +63,7 @@ function asObject(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>
 }
 
-async function login(page: Page, email = 'user@kurio.io'): Promise<string> {
+async function login(page: Page, email = 'user@kurio.io'): Promise<void> {
   const result = await apiRequest(page, '/api/auth/login', {
     method: 'POST',
     body: { email, password: 'demo1234' },
@@ -73,25 +71,28 @@ async function login(page: Page, email = 'user@kurio.io'): Promise<string> {
   expect(result.status).toBe(200)
   const auth = asObject(result.body)
   const session = asObject(auth.session)
-  expect(typeof session.accessToken).toBe('string')
-  return session.accessToken as string
+  expect(session).not.toHaveProperty('accessToken')
+  const mockSessionToken = auth.mockSessionToken
+  if (typeof mockSessionToken !== 'string')
+    throw new TypeError('Expected the MSW session cookie bridge')
+  await page.evaluate((token) => {
+    document.cookie = `kurio_session=${encodeURIComponent(token)}; Path=/; SameSite=Lax`
+  }, mockSessionToken)
+  const visibleCookie = await page.evaluate(() => document.cookie)
+  expect(visibleCookie).toContain('kurio_session=')
+  const restored = await apiRequest(page, '/api/auth/session')
+  expect(restored.status).toBe(200)
 }
 
-async function createPendingOrder(
-  page: Page,
-  accessToken: string,
-  key: string,
-) {
+async function createPendingOrder(page: Page, key: string) {
   const cart = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken,
     body: { nftId: 'emerald-ape-042', quantity: 1 },
   })
   expect(cart.status).toBe(201)
 
   const quote = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   expect(quote.status).toBe(201)
@@ -99,7 +100,6 @@ async function createPendingOrder(
 
   const order = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken,
     idempotencyKey: key,
     body: { quoteId: quoteBody.id, walletId: 'wallet-user-ethereum' },
   })
@@ -150,42 +150,38 @@ test('supports authenticated resource endpoints and idempotent order creation', 
   page,
 }) => {
   await openApp(page)
-  const accessToken = await login(page)
+  await login(page)
 
-  const session = await apiRequest(page, '/api/auth/session', { accessToken })
+  const session = await apiRequest(page, '/api/auth/session', {})
   expect(session.status).toBe(200)
   expect(asObject(session.body)).not.toHaveProperty('password')
 
-  const profile = await apiRequest(page, '/api/profile', { accessToken })
+  const profile = await apiRequest(page, '/api/profile', {})
   expect(profile.status).toBe(200)
-  const wallets = await apiRequest(page, '/api/wallets', { accessToken })
+  const wallets = await apiRequest(page, '/api/wallets', {})
   expect(wallets.status).toBe(200)
 
   const favorite = await apiRequest(page, '/api/favorites/emerald-ape-042', {
     method: 'POST',
-    accessToken,
   })
   expect(favorite.status).toBe(201)
-  const favorites = await apiRequest(page, '/api/favorites', { accessToken })
+  const favorites = await apiRequest(page, '/api/favorites', {})
   expect(favorites.status).toBe(200)
   expect(favorites.body).toHaveLength(1)
 
   const cart = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken,
     body: { nftId: 'emerald-ape-042', quantity: 2 },
   })
   expect(cart.status).toBe(201)
   const coupon = await apiRequest(page, '/api/cart/coupon', {
     method: 'POST',
-    accessToken,
     body: { code: 'KURIO10' },
   })
   expect(coupon.status).toBe(200)
 
   const quoteResult = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   expect(quoteResult.status).toBe(201)
@@ -199,7 +195,6 @@ test('supports authenticated resource endpoints and idempotent order creation', 
   const orderInput = { quoteId: quote.id, walletId: 'wallet-user-ethereum' }
   const missingKey = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken,
     body: orderInput,
   })
   expect(missingKey.status).toBe(400)
@@ -207,7 +202,6 @@ test('supports authenticated resource endpoints and idempotent order creation', 
 
   const first = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken,
     idempotencyKey: 'e2e-order-key',
     body: orderInput,
   })
@@ -217,7 +211,6 @@ test('supports authenticated resource endpoints and idempotent order creation', 
 
   const retry = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken,
     idempotencyKey: 'e2e-order-key',
     body: orderInput,
   })
@@ -226,7 +219,6 @@ test('supports authenticated resource endpoints and idempotent order creation', 
 
   const conflict = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken,
     idempotencyKey: 'e2e-order-key',
     body: { quoteId: 'different-quote', walletId: 'wallet-user-ethereum' },
   })
@@ -238,17 +230,14 @@ test('supports authenticated resource endpoints and idempotent order creation', 
     `/api/orders/${String(firstOrder.id)}/confirm`,
     {
       method: 'POST',
-      accessToken,
     },
   )
   expect(confirmed.status).toBe(200)
   expect(asObject(confirmed.body).status).toBe('confirmed')
   expect(typeof asObject(confirmed.body).transactionId).toBe('string')
+  expect((await apiRequest(page, '/api/orders', {})).body).toHaveLength(1)
   expect(
-    (await apiRequest(page, '/api/orders', { accessToken })).body,
-  ).toHaveLength(1)
-  expect(
-    asObject((await apiRequest(page, '/api/cart', { accessToken })).body).items,
+    asObject((await apiRequest(page, '/api/cart', {})).body).items,
   ).toHaveLength(0)
 })
 
@@ -284,10 +273,9 @@ test('returns consistent error shapes and activates global scenarios', async ({
     'EMAIL_ALREADY_REGISTERED',
   )
 
-  const accessToken = await login(page)
+  await login(page)
   const invalidCartItem = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken,
     body: { nftId: 'emerald-ape-042', quantity: 0 },
   })
   expect(invalidCartItem.status).toBe(422)
@@ -295,14 +283,12 @@ test('returns consistent error shapes and activates global scenarios', async ({
 
   const validCartItem = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken,
     body: { nftId: 'emerald-ape-042', quantity: 1 },
   })
   expect(validCartItem.status).toBe(201)
 
   const forbiddenQuote = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-collector-polygon' },
   })
   expect(forbiddenQuote.status).toBe(403)
@@ -324,7 +310,7 @@ test('returns consistent error shapes and activates global scenarios', async ({
   await page.evaluate(() =>
     (window as unknown as TestWindow).__mswScenario('session-expired'),
   )
-  const expired = await apiRequest(page, '/api/profile', { accessToken })
+  const expired = await apiRequest(page, '/api/profile', {})
   expect(expired.status).toBe(401)
   expect(asObject(expired.body)).toMatchObject({ code: 'UNAUTHORIZED' })
   await page.evaluate(() => (window as unknown as TestWindow).__mswReset())
@@ -334,10 +320,9 @@ test('simulates mid-checkout price changes, stock exhaustion and coupon expiry',
   page,
 }) => {
   await openApp(page)
-  const accessToken = await login(page)
+  await login(page)
   const cart = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken,
     body: { nftId: 'emerald-ape-042', quantity: 1 },
   })
   expect(cart.status).toBe(201)
@@ -349,7 +334,6 @@ test('simulates mid-checkout price changes, stock exhaustion and coupon expiry',
   )
   const priceChange = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   expect(priceChange.status).toBe(409)
@@ -362,7 +346,6 @@ test('simulates mid-checkout price changes, stock exhaustion and coupon expiry',
   )
   const refreshedQuote = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   expect(refreshedQuote.status).toBe(201)
@@ -372,17 +355,15 @@ test('simulates mid-checkout price changes, stock exhaustion and coupon expiry',
   )
   const soldOut = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   expect(soldOut.status).toBe(409)
   expect(asObject(soldOut.body).code).toBe('EDITION_SOLD_OUT')
 
   await page.evaluate(() => (window as unknown as TestWindow).__mswReset())
-  const resetToken = await login(page)
+  await login(page)
   await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken: resetToken,
     body: { nftId: 'emerald-ape-042', quantity: 1 },
   })
   await page.evaluate(() =>
@@ -390,7 +371,6 @@ test('simulates mid-checkout price changes, stock exhaustion and coupon expiry',
   )
   const expiredCoupon = await apiRequest(page, '/api/cart/coupon', {
     method: 'POST',
-    accessToken: resetToken,
     body: { code: 'KURIO10' },
   })
   expect(expiredCoupon.status).toBe(422)
@@ -401,8 +381,8 @@ test('models payment decline and timeout-after-order-create without duplicate or
   page,
 }) => {
   await openApp(page)
-  const accessToken = await login(page)
-  const order = await createPendingOrder(page, accessToken, 'e2e-declined-key')
+  await login(page)
+  const order = await createPendingOrder(page, 'e2e-declined-key')
   await page.evaluate(() =>
     (window as unknown as TestWindow).__mswScenario('payment-declined'),
   )
@@ -411,7 +391,6 @@ test('models payment decline and timeout-after-order-create without duplicate or
     `/api/orders/${String(order.id)}/confirm`,
     {
       method: 'POST',
-      accessToken,
     },
   )
   expect(declined.status).toBe(200)
@@ -419,16 +398,14 @@ test('models payment decline and timeout-after-order-create without duplicate or
   expect(asObject(declined.body).transactionId).toBeNull()
 
   await page.evaluate(() => (window as unknown as TestWindow).__mswReset())
-  const resetToken = await login(page)
+  await login(page)
   const cart = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
-    accessToken: resetToken,
     body: { nftId: 'emerald-ape-042', quantity: 1 },
   })
   expect(cart.status).toBe(201)
   const quoteResponse = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    accessToken: resetToken,
     body: { walletId: 'wallet-user-ethereum' },
   })
   const quote = asObject(quoteResponse.body)
@@ -440,7 +417,6 @@ test('models payment decline and timeout-after-order-create without duplicate or
   const input = { quoteId: quote.id, walletId: 'wallet-user-ethereum' }
   const timedOut = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken: resetToken,
     idempotencyKey: 'e2e-timeout-key',
     body: input,
   })
@@ -449,15 +425,12 @@ test('models payment decline and timeout-after-order-create without duplicate or
 
   const retried = await apiRequest(page, '/api/orders', {
     method: 'POST',
-    accessToken: resetToken,
     idempotencyKey: 'e2e-timeout-key',
     body: input,
   })
   expect(retried.status).toBe(200)
   expect(asObject(retried.body).status).toBe('pending')
-  expect(
-    (await apiRequest(page, '/api/orders', { accessToken: resetToken })).body,
-  ).toHaveLength(1)
+  expect((await apiRequest(page, '/api/orders', {})).body).toHaveLength(1)
 })
 
 test('delays REST responses by three seconds in slow-3s scenario', async ({
@@ -487,16 +460,30 @@ test('delivers versioned Socket.IO updates out of order when requested', async (
   await page.evaluate(() =>
     (window as unknown as TestWindow).__mswScenario('out-of-order'),
   )
-  await page.addScriptTag({
-    type: 'module',
-    content: `
-      import { createRealtimeClient } from '/src/api/realtime.ts';
-      window.__kurioSocketEvents = [];
-      const socket = createRealtimeClient();
-      socket.on('nft.updated', (payload) => window.__kurioSocketEvents.push(payload));
-      socket.on('connect', () => socket.emit('nft.subscribe', 'emerald-ape-042'));
-      socket.connect();
-    `,
+  await page.evaluate(() => {
+    const socketWindow = window as unknown as {
+      __kurioSocketEvents: Array<{ version: number }>
+    }
+    socketWindow.__kurioSocketEvents = []
+    const socketUrl = new URL(
+      '/socket.io/?EIO=4&transport=websocket',
+      window.location.href,
+    )
+    socketUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const socket = new WebSocket(socketUrl)
+    socket.addEventListener('message', (event) => {
+      if (typeof event.data !== 'string' || !event.data.startsWith('42')) return
+      const [eventName, payload] = JSON.parse(event.data.slice(2)) as [
+        string,
+        { version: number },
+      ]
+      if (eventName === 'nft.updated') {
+        socketWindow.__kurioSocketEvents.push(payload)
+      }
+    })
+    socket.addEventListener('open', () => {
+      socket.send('42["nft.subscribe","emerald-ape-042"]')
+    })
   })
   await page.waitForFunction(
     () => {
@@ -507,6 +494,7 @@ test('delivers versioned Socket.IO updates out of order when requested', async (
       ).__kurioSocketEvents
       return events?.length === 2
     },
+    undefined,
     { timeout: 10_000 },
   )
   const versions = await page.evaluate(() => {

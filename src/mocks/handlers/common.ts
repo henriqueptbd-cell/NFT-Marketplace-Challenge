@@ -4,6 +4,8 @@ import type { ApiError, User } from '@/api/types'
 import { getMockState, incrementMockRequestCount } from '@/mocks/store'
 import { getActiveMockScenario } from '@/mocks/scenarios'
 
+export const SESSION_COOKIE_NAME = 'kurio_session'
+
 export function apiErrorResponse(
   status: number,
   code: string,
@@ -16,35 +18,63 @@ export function apiErrorResponse(
   return HttpResponse.json(body, { status })
 }
 
-export function readAuthenticatedUser(request: Request): User | null {
-  if (getActiveMockScenario() === 'session-expired') return null
-  const authorization = request.headers.get('Authorization')
-  if (!authorization?.startsWith('Bearer ')) return null
+export function readSessionCredential(request: Request): string | null {
+  const interceptedCookie = request.headers.get('cookie')
+  const browserCookie = typeof document === 'undefined' ? '' : document.cookie
+  const cookieHeader = interceptedCookie ?? browserCookie
+  for (const part of cookieHeader.split(';')) {
+    const [name, ...valueParts] = part.trim().split('=')
+    if (name !== SESSION_COOKIE_NAME || valueParts.length === 0) continue
+    try {
+      return decodeURIComponent(valueParts.join('='))
+    } catch {
+      return valueParts.join('=')
+    }
+  }
 
-  const accessToken = authorization.slice('Bearer '.length)
+  return null
+}
+
+export async function hashSessionCredential(
+  credential: string,
+): Promise<string> {
+  const bytes = new TextEncoder().encode(credential)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
+}
+
+export async function readAuthenticatedUser(
+  request: Request,
+): Promise<User | null> {
+  if (getActiveMockScenario() === 'session-expired') return null
+  const credential = readSessionCredential(request)
+  if (!credential) return null
+  const credentialHash = await hashSessionCredential(credential)
   const state = getMockState()
   const session = state.sessions.find(
     (item) =>
-      item.accessToken === accessToken &&
+      item.cookieHash === credentialHash &&
       item.expiresAt > new Date().toISOString(),
   )
   if (!session) return null
   const user = state.users.find((item) => item.id === session.userId)
   if (!user) return null
 
-  const publicUser: User = {
+  return {
     id: user.id,
     email: user.email,
     role: user.role,
     displayName: user.displayName,
+    username: user.username,
     createdAt: user.createdAt,
   }
-  return publicUser
 }
 
-export function requireUser(request: Request): User | Response {
+export async function requireUser(request: Request): Promise<User | Response> {
   return (
-    readAuthenticatedUser(request) ??
+    (await readAuthenticatedUser(request)) ??
     apiErrorResponse(401, 'UNAUTHORIZED', 'A valid session is required.')
   )
 }

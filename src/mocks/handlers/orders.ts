@@ -40,7 +40,7 @@ function publishOrderUpdate(orderId: string): void {
 
 export const orderHandlers = [
   http.post('/api/orders', async ({ request }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const idempotencyKey = request.headers.get('Idempotency-Key')?.trim()
     if (!idempotencyKey)
@@ -164,8 +164,8 @@ export const orderHandlers = [
     return HttpResponse.json(order, { status: 201 })
   }),
 
-  http.get('/api/orders', ({ request }) => {
-    const user = requireUser(request)
+  http.get('/api/orders', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
     return HttpResponse.json(
@@ -173,8 +173,8 @@ export const orderHandlers = [
     )
   }),
 
-  http.get('/api/orders/:orderId', ({ request, params }) => {
-    const user = requireUser(request)
+  http.get('/api/orders/:orderId', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const order = getMockState().orders.find(
       (item) => item.id === String(params.orderId),
@@ -190,8 +190,8 @@ export const orderHandlers = [
     return HttpResponse.json(order)
   }),
 
-  http.post('/api/orders/:orderId/confirm', ({ request, params }) => {
-    const user = requireUser(request)
+  http.post('/api/orders/:orderId/confirm', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const orderId = String(params.orderId)
     const state = getMockState()

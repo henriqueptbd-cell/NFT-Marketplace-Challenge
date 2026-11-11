@@ -55,8 +55,8 @@ function setCart(
 }
 
 export const cartHandlers = [
-  http.get('/api/cart', ({ request }) => {
-    const user = requireUser(request)
+  http.get('/api/cart', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const cart = getOrCreateCart(user.id)
     if (getActiveMockScenario() === 'empty')
@@ -65,7 +65,7 @@ export const cartHandlers = [
   }),
 
   http.post('/api/cart/items', async ({ request }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, cartItemInputSchema)
     if (!parsed.ok) return parsed.response
@@ -99,7 +99,7 @@ export const cartHandlers = [
   }),
 
   http.patch('/api/cart/items/:nftId', async ({ request, params }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, quantityInputSchema)
     if (!parsed.ok) return parsed.response
@@ -129,8 +129,8 @@ export const cartHandlers = [
     )
   }),
 
-  http.delete('/api/cart/items/:nftId', ({ request, params }) => {
-    const user = requireUser(request)
+  http.delete('/api/cart/items/:nftId', async ({ request, params }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const nftId = String(params.nftId)
     const cart = getMockState().carts.find((item) => item.userId === user.id)
@@ -144,8 +144,8 @@ export const cartHandlers = [
     )
   }),
 
-  http.delete('/api/cart', ({ request }) => {
-    const user = requireUser(request)
+  http.delete('/api/cart', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     return HttpResponse.json(
       setCart(user.id, (draft) => {
@@ -156,7 +156,7 @@ export const cartHandlers = [
   }),
 
   http.post('/api/cart/coupon', async ({ request }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, couponInputSchema)
     if (!parsed.ok) return parsed.response
@@ -181,8 +181,8 @@ export const cartHandlers = [
     )
   }),
 
-  http.delete('/api/cart/coupon', ({ request }) => {
-    const user = requireUser(request)
+  http.delete('/api/cart/coupon', async ({ request }) => {
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     return HttpResponse.json(
       setCart(user.id, (draft) => {

@@ -37,7 +37,7 @@ function publishNftUpdate(nftId: string): void {
 
 export const quoteHandlers = [
   http.post('/api/quote', async ({ request }) => {
-    const user = requireUser(request)
+    const user = await requireUser(request)
     if (user instanceof Response) return user
     const parsed = await readJsonBody(request, quoteRequestSchema)
     if (!parsed.ok) return parsed.response

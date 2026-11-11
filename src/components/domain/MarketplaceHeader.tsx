@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useCart } from '@/hooks/useCart'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { discoveryCopy } from '@/lib/discovery-copy'
 
 export interface MarketplaceHeaderProps {
@@ -33,6 +34,7 @@ export function MarketplaceHeader({
     source: defaultQuery,
     value: defaultQuery,
   })
+  const currentUser = useCurrentUser()
   const cartQuery = useCart()
   const query =
     queryDraft.source === defaultQuery ? queryDraft.value : defaultQuery
@@ -107,12 +109,21 @@ export function MarketplaceHeader({
             </Badge>
           ) : null}
         </Link>
-        <Link
-          to="/login"
-          className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-button border border-primary px-3 text-sm font-medium text-primary transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4"
-        >
-          {discoveryCopy.header.login}
-        </Link>
+        {currentUser ? (
+          <Link
+            to="/profile"
+            className="inline-flex min-h-10 max-w-32 shrink-0 items-center justify-center truncate rounded-button border border-primary px-3 text-sm font-medium text-primary transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:max-w-48 sm:px-4"
+          >
+            {currentUser.displayName}
+          </Link>
+        ) : (
+          <Link
+            to="/login"
+            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-button border border-primary px-3 text-sm font-medium text-primary transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4"
+          >
+            {discoveryCopy.header.login}
+          </Link>
+        )}
       </div>
       <nav
         aria-label={discoveryCopy.nav.label}

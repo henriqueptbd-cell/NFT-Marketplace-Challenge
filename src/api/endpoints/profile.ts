@@ -4,8 +4,11 @@ import { collectorProfileSchema, type CollectorProfile } from '@/api/types'
 
 const profilePatchSchema = z
   .object({
-    displayName: z.string().min(1).optional(),
+    displayName: z.string().trim().min(1).max(80).optional(),
+    username: z.string().trim().min(2).max(32).optional(),
+    email: z.string().trim().email().optional(),
     ens: z.string().nullable().optional(),
+    walletNickname: z.string().max(48).optional(),
     avatar: z.string().nullable().optional(),
     bio: z.string().max(500).optional(),
   })
