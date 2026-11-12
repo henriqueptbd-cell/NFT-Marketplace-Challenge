@@ -314,6 +314,71 @@ test('confirmation removes only the quantities captured by the order snapshot', 
   ])
 })
 
+test('does not show a previous account cart after the session changes', async ({
+  page,
+}) => {
+  await openApp(page)
+
+  const loginAs = async (email: string) => {
+    const result = await apiRequest(page, '/api/auth/login', {
+      method: 'POST',
+      body: { email, password: 'demo1234' },
+    })
+    expect(result.status).toBe(200)
+    const auth = asObject(result.body)
+    const token = auth.mockSessionToken
+    if (typeof token !== 'string') {
+      throw new TypeError('Expected the MSW session cookie bridge')
+    }
+    const user = asObject(auth.user)
+    await page.evaluate(
+      ({ cookieToken, sessionUser }) => {
+        document.cookie = `kurio_session=${encodeURIComponent(cookieToken)}; Path=/; SameSite=Lax`
+        window.localStorage.setItem(
+          'kurio:user:v1',
+          JSON.stringify(sessionUser),
+        )
+        window.dispatchEvent(new CustomEvent('kurio:user-changed'))
+      },
+      { cookieToken: token, sessionUser: user },
+    )
+  }
+
+  const waitForCartRequest = () =>
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === '/api/cart' &&
+        response.request().method() === 'GET',
+      { timeout: 5_000 },
+    )
+
+  const firstCartRequest = waitForCartRequest()
+  await loginAs('user@kurio.io')
+  const firstCartResponse = await firstCartRequest
+  expect(firstCartResponse.status()).toBe(200)
+
+  const added = await apiRequest(page, '/api/cart/items', {
+    method: 'POST',
+    body: { nftId: 'emerald-ape-042', quantity: 1 },
+  })
+  expect(added.status).toBe(201)
+  await page.goto('/cart')
+  await expect(
+    page.getByRole('heading', { name: 'Emerald Ape #042' }),
+  ).toBeVisible()
+
+  const secondCartRequest = waitForCartRequest()
+  await loginAs('collector@kurio.io')
+  const secondCartResponse = await secondCartRequest
+  expect(secondCartResponse.status()).toBe(200)
+  const secondCart = asObject(await secondCartResponse.json())
+  expect(secondCart.userId).toBe('collector-demo')
+  expect(secondCart.items).toEqual([])
+  await expect(
+    page.getByRole('heading', { name: 'Emerald Ape #042' }),
+  ).toBeHidden()
+})
+
 test('returns consistent error shapes and activates global scenarios', async ({
   page,
 }) => {

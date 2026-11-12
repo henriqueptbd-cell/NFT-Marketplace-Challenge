@@ -8,22 +8,27 @@ import {
   removeCoupon,
   setCartItemQuantity,
 } from '@/api/endpoints'
+import { getGuestCartId } from '@/api/client'
 import type { Cart } from '@/api/types'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
-export const cartQueryKey = ['cart'] as const
+export const cartQueryKey = (ownerId: string) => ['cart', ownerId] as const
 export const cartQuoteQueryKey = ['cart', 'quote'] as const
 
 function updateCartCache(
   queryClient: ReturnType<typeof useQueryClient>,
   cart: Cart,
 ) {
-  queryClient.setQueryData(cartQueryKey, cart)
+  queryClient.setQueryData(cartQueryKey(cart.userId), cart)
   void queryClient.invalidateQueries({ queryKey: cartQuoteQueryKey })
 }
 
 export function useCart() {
+  const currentUser = useCurrentUser()
+  const ownerId = currentUser?.id ?? `guest:${getGuestCartId()}`
+
   return useQuery({
-    queryKey: cartQueryKey,
+    queryKey: cartQueryKey(ownerId),
     queryFn: getCart,
     retry: false,
   })

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { mergeGuestCart, type AuthResponse } from '@/api/endpoints'
+import { getGuestCartId } from '@/api/client'
 import { accountCopy } from '@/lib/account-copy'
 import { resolveInternalRedirect } from '@/lib/account-routing'
 import { authSessionQueryKey } from '@/hooks/useAuth'
@@ -29,7 +30,11 @@ export function useCompleteAuth({ redirect, onClose }: UseCompleteAuthOptions) {
       setMergeError('')
       try {
         const cart = await mergeGuestCart()
-        queryClient.setQueryData(cartQueryKey, cart)
+        queryClient.removeQueries({
+          queryKey: cartQueryKey(`guest:${getGuestCartId()}`),
+          exact: true,
+        })
+        queryClient.setQueryData(cartQueryKey(cart.userId), cart)
       } catch {
         setMergePending(true)
         setMergeError(accountCopy.auth.cartMergeError)
@@ -47,7 +52,11 @@ export function useCompleteAuth({ redirect, onClose }: UseCompleteAuthOptions) {
     setMergeError('')
     try {
       const cart = await mergeGuestCart()
-      queryClient.setQueryData(cartQueryKey, cart)
+      queryClient.removeQueries({
+        queryKey: cartQueryKey(`guest:${getGuestCartId()}`),
+        exact: true,
+      })
+      queryClient.setQueryData(cartQueryKey(cart.userId), cart)
       setMergePending(false)
       onClose()
       if (redirect) void navigate({ href: resolveInternalRedirect(redirect) })

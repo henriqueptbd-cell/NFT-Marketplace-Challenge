@@ -90,13 +90,13 @@ export function CheckoutPage() {
   const socket = useMemo(() => createRealtimeClient(), [])
 
   const profileQuery = useQuery({
-    queryKey: ['profile'],
+    queryKey: ['profile', currentUser?.id],
     queryFn: getProfile,
     enabled: Boolean(currentUser),
     retry: false,
   })
   const walletsQuery = useQuery({
-    queryKey: ['wallets'],
+    queryKey: ['wallets', currentUser?.id],
     queryFn: getWallets,
     enabled: Boolean(currentUser),
     retry: false,
@@ -125,6 +125,7 @@ export function CheckoutPage() {
   const quoteQuery = useQuery({
     queryKey: [
       ...cartQuoteQueryKey,
+      cart?.userId,
       cart?.id,
       cart?.version,
       effectiveWalletId,
@@ -229,7 +230,10 @@ export function CheckoutPage() {
       const previousVersion = lastOrderVersions.current.get(payload.id) ?? -1
       if (payload.version <= previousVersion) return
       lastOrderVersions.current.set(payload.id, payload.version)
-      queryClient.setQueryData(['orders', payload.id], payload.data)
+      queryClient.setQueryData(
+        ['orders', currentUser.id, payload.id],
+        payload.data,
+      )
       if (payload.id === activeOrderId && payload.data.status === 'confirmed') {
         setCompletedOrder(payload.data)
       }

@@ -94,7 +94,13 @@ export function CartPage() {
   )
 
   const quoteQuery = useQuery({
-    queryKey: [...cartQuoteQueryKey, cart?.id, cart?.version, null],
+    queryKey: [
+      ...cartQuoteQueryKey,
+      cart?.userId,
+      cart?.id,
+      cart?.version,
+      null,
+    ],
     queryFn: () => createQuote(),
     enabled: Boolean(cart && cart.items.length > 0),
     retry: false,
