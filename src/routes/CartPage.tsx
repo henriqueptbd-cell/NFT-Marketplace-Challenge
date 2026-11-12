@@ -95,7 +95,7 @@ export function CartPage() {
   const quoteQuery = useQuery({
     queryKey: [...cartQuoteQueryKey, cart?.id, cart?.version, null],
     queryFn: () => createQuote(),
-    enabled: Boolean(currentUser && cart && cart.items.length > 0),
+    enabled: Boolean(cart && cart.items.length > 0),
     retry: false,
     staleTime: 4 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -436,7 +436,7 @@ export function CartPage() {
                   networkFeeString={quoteQuery.data?.networkFeeString}
                   totalString={quoteQuery.data?.totalString}
                   couponCode={cart.couponCode}
-                  provisional={!currentUser}
+                  provisional={!quoteQuery.data}
                 />
                 {!currentUser ? (
                   <p className="text-xs text-text-secondary">

@@ -59,11 +59,22 @@ function isValidGuestCartId(value: string | null): value is string {
   return Boolean(value && /^[a-f\d-]{36}$/i.test(value.trim()))
 }
 
+function isCouponExpired(code: string | null): boolean {
+  if (!code) return false
+  const coupon = getMockState().coupons.find((item) => item.code === code)
+  return !coupon || !coupon.active || coupon.expiresAt <= nowIso()
+}
+
 export const cartHandlers = [
   http.get('/api/cart', async ({ request }) => {
     const ownerId = await requireCartOwner(request)
     if (ownerId instanceof Response) return ownerId
-    const cart = getOrCreateCart(ownerId)
+    let cart = getOrCreateCart(ownerId)
+    if (isCouponExpired(cart.couponCode)) {
+      cart = setCart(ownerId, (draft) => {
+        draft.couponCode = null
+      })
+    }
     if (getActiveMockScenario() === 'empty')
       return HttpResponse.json({ ...cart, items: [], couponCode: null })
     return HttpResponse.json(cart)

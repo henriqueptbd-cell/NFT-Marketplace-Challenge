@@ -2,6 +2,11 @@ import { expect, test, type Page } from '@playwright/test'
 
 interface TestWindow extends Window {
   __mswScenario: (name: string) => void
+  __mswPatch: (
+    mutator: (draft: {
+      nfts: Array<{ id: string; edition: { available: number } }>
+    }) => void,
+  ) => void
 }
 
 async function openRoute(page: Page, path: string): Promise<void> {
@@ -42,15 +47,11 @@ async function setNFTAvailability(
 ): Promise<void> {
   await page.evaluate(
     ({ id, remaining }) => {
-      const state = JSON.parse(
-        window.localStorage.getItem('msw:state:v1') ?? 'null',
-      ) as {
-        nfts: Array<{ id: string; edition: { available: number } }>
-      } | null
-      const nft = state?.nfts.find((item) => item.id === id)
-      if (!state || !nft) throw new Error('Mock NFT was not found')
-      nft.edition.available = remaining
-      window.localStorage.setItem('msw:state:v1', JSON.stringify(state))
+      ;(window as unknown as TestWindow).__mswPatch((draft) => {
+        const nft = draft.nfts.find((item) => item.id === id)
+        if (!nft) throw new Error('Mock NFT was not found')
+        nft.edition.available = remaining
+      })
     },
     { id: nftId, remaining: available },
   )
@@ -124,6 +125,26 @@ test('carrinho convidado persiste, mantém cupom/quantidade e mescla após login
     quantity: 2,
   })
   expect(cart.couponCode).toBe('KURIO10')
+})
+
+test('cupom aplicado pelo convidado reflete no desconto e no total', async ({
+  page,
+}) => {
+  await addEmeraldApe(page)
+  await openRoute(page, '/cart')
+
+  const summary = page.locator('section', {
+    has: page.getByRole('heading', { name: 'Sua compra' }),
+  })
+  await expect(summary).toContainText('1.19 ETH')
+  await expect(summary).toContainText('1.194 ETH')
+
+  await page.locator('#cart-coupon').fill('KURIO10')
+  await page.getByRole('button', { name: 'Aplicar', exact: true }).click()
+  await expect(page.getByText('Cupom aplicado.')).toBeVisible()
+
+  await expect(summary).toContainText('0.119 ETH')
+  await expect(summary).toContainText('1.075 ETH')
 })
 
 test('checkout exige sessão, preserva redirect e mantém carrinho convidado', async ({

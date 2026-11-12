@@ -188,4 +188,7 @@ export function resetMockStore(): void {
 
 if (typeof window !== 'undefined') {
   window.__mswReset = resetMockStore
+  window.__mswPatch = (mutator) => {
+    updateMockState(mutator)
+  }
 }

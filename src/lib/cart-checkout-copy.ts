@@ -52,7 +52,8 @@ export const cartCheckoutCopy = {
     networkFee: 'Taxa de rede',
     total: 'Total',
     feeAtCheckout: 'Calculada ao selecionar uma carteira',
-    quoteAfterLogin: 'Entre para consultar desconto, taxa de rede e total.',
+    quoteEstimate:
+      'Estimativa gerada pelo servidor. A taxa de rede final é calculada ao escolher a carteira.',
     continueShopping: 'Continuar comprando',
     checkout: 'Ir para o checkout',
     connectCheckout: 'Conectar e finalizar',

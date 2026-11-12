@@ -13,8 +13,10 @@ import { QuantityStepper } from '@/components/domain/QuantityStepper'
 import { RatingStars } from '@/components/domain/RatingStars'
 import { SocialIcon } from '@/components/domain/SocialIcon'
 import { MarketplaceHeader } from '@/components/domain/MarketplaceHeader'
+import { NftReviews } from '@/components/domain/NftReviews'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAddCartItem } from '@/hooks/useCart'
 import { useFavorite } from '@/hooks/useFavorites'
 import { useNft, useNfts } from '@/hooks/useNfts'
@@ -48,6 +50,8 @@ interface CartFeedback {
   status: 'success' | 'error'
   message?: string
 }
+
+type DetailTab = 'details' | 'reviews'
 
 function errorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
@@ -106,6 +110,10 @@ export function NFTDetailPage() {
     quantity: 1,
   })
   const [selectedImage, setSelectedImage] = useState({ nftId: '', src: '' })
+  const [tabSelection, setTabSelection] = useState<{
+    nftId: string
+    tab: DetailTab
+  }>({ nftId: '', tab: 'details' })
   const [cartFeedback, setCartFeedback] = useState<CartFeedback>()
 
   const relatedQuery = useNfts(
@@ -148,6 +156,8 @@ export function NFTDetailPage() {
     : '—'
   const shareUrl =
     typeof window === 'undefined' ? '' : `${window.location.origin}/nft/${id}`
+  const activeTab: DetailTab =
+    tabSelection.nftId === id ? tabSelection.tab : 'details'
 
   function handleSearch(query: string) {
     void navigate({
@@ -320,6 +330,9 @@ export function NFTDetailPage() {
                     rating={nft.rating}
                     reviewCount={nft.reviewCount}
                     label={discoveryCopy.detail.reviews(nft.reviewCount)}
+                    onLabelClick={() =>
+                      setTabSelection({ nftId: id, tab: 'reviews' })
+                    }
                     ariaLabel={discoveryCopy.detail.reviewLabel(
                       nft.rating,
                       nft.reviewCount,
@@ -480,58 +493,82 @@ export function NFTDetailPage() {
             </section>
           </div>
 
-          <section className="mt-14 grid gap-7">
-            <div className="flex justify-center border-b border-border">
-              <h2 className="border-b-2 border-primary pb-3 font-mono text-sm font-bold text-text-primary">
-                {discoveryCopy.detail.details.title}
-              </h2>
-            </div>
-            <div className="grid gap-4 font-mono text-sm leading-7 text-text-secondary">
-              <p>
-                {discoveryCopy.detail.details.provenance(
-                  nft.name,
-                  nft.collection,
-                  editionLabel,
-                  nft.network,
-                )}
-              </p>
-              <p>{discoveryCopy.detail.details.ownership}</p>
-            </div>
-            <ul className="grid gap-2.5 font-mono text-xs text-text-secondary">
-              <li className="flex gap-2">
-                <span aria-hidden="true" className="text-primary">
-                  •
-                </span>
-                <span>
-                  <strong className="text-text-primary">
-                    {discoveryCopy.detail.network}:
-                  </strong>{' '}
-                  {discoveryCopy.detail.details.network(nft.network)}
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span aria-hidden="true" className="text-primary">
-                  •
-                </span>
-                <span>
-                  <strong className="text-text-primary">
-                    {discoveryCopy.detail.contract}:
-                  </strong>{' '}
-                  {discoveryCopy.detail.details.contract}
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span aria-hidden="true" className="text-primary">
-                  •
-                </span>
-                <span>
-                  <strong className="text-text-primary">
-                    {discoveryCopy.detail.royalty}:
-                  </strong>{' '}
-                  {discoveryCopy.detail.details.royalty}
-                </span>
-              </li>
-            </ul>
+          <section className="mt-14">
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) =>
+                setTabSelection({ nftId: id, tab: value as DetailTab })
+              }
+              className="gap-7"
+            >
+              <TabsList className="w-full justify-start gap-8">
+                <TabsTrigger
+                  value="details"
+                  className="px-0 font-mono text-sm font-bold"
+                >
+                  {discoveryCopy.detail.details.title}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="reviews"
+                  className="px-0 font-mono text-sm font-bold"
+                >
+                  {discoveryCopy.detail.reviewsTab(nft.reviewCount)}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="grid gap-7">
+                <div className="grid gap-4 font-mono text-sm leading-7 text-text-secondary">
+                  <p>
+                    {discoveryCopy.detail.details.provenance(
+                      nft.name,
+                      nft.collection,
+                      editionLabel,
+                      nft.network,
+                    )}
+                  </p>
+                  <p>{discoveryCopy.detail.details.ownership}</p>
+                </div>
+                <ul className="grid gap-2.5 font-mono text-xs text-text-secondary">
+                  <li className="flex gap-2">
+                    <span aria-hidden="true" className="text-primary">
+                      •
+                    </span>
+                    <span>
+                      <strong className="text-text-primary">
+                        {discoveryCopy.detail.network}:
+                      </strong>{' '}
+                      {discoveryCopy.detail.details.network(nft.network)}
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span aria-hidden="true" className="text-primary">
+                      •
+                    </span>
+                    <span>
+                      <strong className="text-text-primary">
+                        {discoveryCopy.detail.contract}:
+                      </strong>{' '}
+                      {discoveryCopy.detail.details.contract}
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span aria-hidden="true" className="text-primary">
+                      •
+                    </span>
+                    <span>
+                      <strong className="text-text-primary">
+                        {discoveryCopy.detail.royalty}:
+                      </strong>{' '}
+                      {discoveryCopy.detail.details.royalty}
+                    </span>
+                  </li>
+                </ul>
+              </TabsContent>
+
+              <TabsContent value="reviews">
+                <NftReviews nftId={nft.id} />
+              </TabsContent>
+            </Tabs>
           </section>
 
           <section className="mt-16 grid gap-5">

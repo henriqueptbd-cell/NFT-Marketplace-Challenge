@@ -287,6 +287,14 @@ export const discoveryCopy = {
     share: 'Compartilhar este NFT:',
     shareOn: (network: string) => `Compartilhar no ${network}`,
     reviews: (count: number) => `${count} avaliações de colecionadores`,
+    reviewsTab: (count: number) => `Avaliações de colecionadores (${count})`,
+    reviewsLoading: 'Carregando avaliações',
+    reviewsEmptyTitle: 'Nenhuma avaliação ainda',
+    reviewsEmptyDescription:
+      'Este NFT ainda não recebeu avaliações de colecionadores.',
+    reviewsErrorTitle: 'Não foi possível carregar as avaliações',
+    reviewRatingLabel: (rating: number) => `Avaliação ${rating} de 5`,
+    reviewsList: 'Avaliações de colecionadores',
     zoom: 'Ampliar imagem',
     breadcrumb: 'Trilha de navegação',
     details: {

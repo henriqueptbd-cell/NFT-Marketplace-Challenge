@@ -70,8 +70,34 @@ test('detail renders API data and disables purchase for a sold-out edition', asy
   await expect(page.getByRole('button', { name: 'Esgotado' })).toBeDisabled()
   await expect(page.getByText('ID do token')).toBeVisible()
   await expect(
-    page.getByRole('heading', { name: 'Detalhes do NFT' }),
+    page.getByRole('tab', { name: 'Detalhes do NFT', selected: true }),
   ).toBeVisible()
+  await expect(
+    page.getByRole('tab', { name: /Avaliações de colecionadores/ }),
+  ).toBeVisible()
+})
+
+test('detail switches between the details and reviews tabs', async ({
+  page,
+}) => {
+  await openApp(page, '/nft/neon-vessel-552')
+
+  const reviewsTab = page.getByRole('tab', {
+    name: /Avaliações de colecionadores/,
+  })
+  await reviewsTab.click()
+  await expect(reviewsTab).toHaveAttribute('aria-selected', 'true')
+  await expect(
+    page.getByRole('list', { name: 'Avaliações de colecionadores' }),
+  ).toBeVisible()
+  await expect(
+    page
+      .getByRole('list', { name: 'Avaliações de colecionadores' })
+      .locator('li'),
+  ).not.toHaveCount(0)
+
+  await page.getByRole('tab', { name: 'Detalhes do NFT' }).click()
+  await expect(page.getByText('ID do token')).toBeVisible()
 })
 
 test('detail displays the not-found state for an unknown NFT ID', async ({

@@ -4,11 +4,13 @@ import {
   decimalStringSchema,
   networkSchema,
   nftListSchema,
+  nftReviewListSchema,
   nftSchema,
   nftSortSchema,
   type Network,
   type NFT,
   type NFTSort,
+  type NftReview,
 } from '@/api/types'
 
 export interface NFTSearchParams {
@@ -63,4 +65,15 @@ export async function getNft(
     { signal },
   )
   return nftSchema.parse(data)
+}
+
+export async function getNftReviews(
+  nftId: string,
+  signal?: AbortSignal,
+): Promise<NftReview[]> {
+  const { data } = await apiClient.get<unknown>(
+    `/nfts/${encodeURIComponent(nftId)}/reviews`,
+    { signal },
+  )
+  return nftReviewListSchema.parse(data)
 }

@@ -1,4 +1,5 @@
 import { nftListSchema } from '@/api/types/nft'
+import { reviewSummary } from '@/mocks/fixtures/reviews'
 
 /** Só existem quatro artes no acervo; os 24 itens do catálogo as reaproveitam. */
 const apeImages = [
@@ -349,15 +350,11 @@ const baseNftFixtures = [
   },
 ]
 
-const ratings = [
-  4.9, 4.7, 4.6, 4.8, 4.5, 4.9, 4.4, 4.2, 4.8, 4.6, 4.1, 4.7, 4.3, 4.5, 4.8,
-  4.2, 4.6, 4.4, 4.9, 4.3, 4.7, 4.5, 4.8, 4.6,
-]
-
 export const nftFixtures = nftListSchema.parse(
   baseNftFixtures.map((nft, index) => {
     const imageIndex = index % apeImages.length
     const image = apeImages[imageIndex]
+    const summary = reviewSummary(nft.id)
 
     return {
       ...nft,
@@ -365,8 +362,8 @@ export const nftFixtures = nftListSchema.parse(
       images: apeImages.map(
         (_, offset) => apeImages[(imageIndex + offset) % apeImages.length],
       ),
-      rating: ratings[index] ?? 4.5,
-      reviewCount: 12 + index * 4,
+      rating: summary.rating,
+      reviewCount: summary.reviewCount,
       createdAt: new Date(Date.UTC(2026, 10, 11 - index)).toISOString(),
       trendingScore: 1_000 - index * 23,
     }

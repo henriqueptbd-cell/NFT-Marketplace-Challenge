@@ -29,6 +29,11 @@ export {
   type NFTSort,
 } from '@/api/types/nft'
 export {
+  nftReviewListSchema,
+  nftReviewSchema,
+  type NftReview,
+} from '@/api/types/review'
+export {
   newsletterRequestSchema,
   newsletterSubscriptionSchema,
   type NewsletterRequest,

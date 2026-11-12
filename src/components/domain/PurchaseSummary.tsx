@@ -76,7 +76,7 @@ export function PurchaseSummary({
       </dl>
       {provisional ? (
         <p className="text-xs text-text-secondary">
-          {cartCheckoutCopy.cart.quoteAfterLogin}
+          {cartCheckoutCopy.cart.quoteEstimate}
         </p>
       ) : null}
     </section>

@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { decimalStringSchema, networkSchema, nftSortSchema } from '@/api/types'
 import { compareDecimalStrings } from '@/lib/decimal'
 import { apiErrorResponse } from '@/mocks/handlers/common'
+import { buildNftReviews } from '@/mocks/fixtures/reviews'
 import { getActiveMockScenario } from '@/mocks/scenarios'
 import { getMockState } from '@/mocks/store'
 
@@ -122,6 +123,14 @@ export const nftHandlers = [
     })
     const start = (page - 1) * pageSize
     return HttpResponse.json(sorted.slice(start, start + pageSize))
+  }),
+
+  http.get('/api/nfts/:nftId/reviews', ({ params }) => {
+    const nftId = String(params.nftId)
+    const nft = getMockState().nfts.find((item) => item.id === nftId)
+    if (!nft) return apiErrorResponse(404, 'NOT_FOUND', 'NFT was not found.')
+    if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
+    return HttpResponse.json(buildNftReviews(nftId))
   }),
 
   http.get('/api/nfts/:nftId', ({ params }) => {

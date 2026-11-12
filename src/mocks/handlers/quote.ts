@@ -14,7 +14,7 @@ import {
   createId,
   nowIso,
   readJsonBody,
-  requireUser,
+  requireCartOwner,
 } from '@/mocks/handlers/common'
 import { networkFeeFixtures } from '@/mocks/fixtures/network-fees'
 import { consumeMockScenario } from '@/mocks/scenarios'
@@ -37,13 +37,13 @@ function publishNftUpdate(nftId: string): void {
 
 export const quoteHandlers = [
   http.post('/api/quote', async ({ request }) => {
-    const user = await requireUser(request)
-    if (user instanceof Response) return user
+    const ownerId = await requireCartOwner(request)
+    if (ownerId instanceof Response) return ownerId
     const parsed = await readJsonBody(request, quoteRequestSchema)
     if (!parsed.ok) return parsed.response
 
     let state = getMockState()
-    const cart = state.carts.find((item) => item.userId === user.id)
+    const cart = state.carts.find((item) => item.userId === ownerId)
     if (!cart || cart.items.length === 0)
       return apiErrorResponse(
         422,
@@ -57,7 +57,7 @@ export const quoteHandlers = [
       )
       if (!wallet)
         return apiErrorResponse(404, 'NOT_FOUND', 'Wallet was not found.')
-      if (wallet.userId !== user.id)
+      if (wallet.userId !== ownerId)
         return apiErrorResponse(
           403,
           'FORBIDDEN',
@@ -75,7 +75,7 @@ export const quoteHandlers = [
         updateMockState((draft) => {
           const target = draft.nfts.find((item) => item.id === nft.id)
           if (target) target.priceString = revisedPrice
-          const cartTarget = draft.carts.find((item) => item.userId === user.id)
+          const cartTarget = draft.carts.find((item) => item.userId === ownerId)
           const cartItem = cartTarget?.items.find(
             (item) => item.nftId === nft.id,
           )
@@ -107,7 +107,7 @@ export const quoteHandlers = [
     }
 
     state = getMockState()
-    const latestCart = state.carts.find((item) => item.userId === user.id)
+    const latestCart = state.carts.find((item) => item.userId === ownerId)
     if (!latestCart || latestCart.items.length === 0)
       return apiErrorResponse(
         422,
@@ -194,7 +194,7 @@ export const quoteHandlers = [
     )
     const quote = quoteSchema.parse({
       id: createId('quote'),
-      userId: user.id,
+      userId: ownerId,
       cartId: latestCart.id,
       walletId: wallet?.id ?? null,
       items: quoteItems,
