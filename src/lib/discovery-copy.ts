@@ -220,8 +220,7 @@ export const discoveryCopy = {
     loading: 'Carregando NFTs',
     refetching: 'Atualizando resultados',
     emptyTitle: 'Nenhum NFT encontrado',
-    emptyQueryTitle: (query: string) =>
-      `Nenhum NFT encontrado para “${query}”`,
+    emptyQueryTitle: (query: string) => `Nenhum NFT encontrado para “${query}”`,
     emptyDescription:
       'Tente ajustar a busca ou remover alguns filtros para ver outros colecionáveis.',
     errorTitle: 'Não foi possível carregar os NFTs',
