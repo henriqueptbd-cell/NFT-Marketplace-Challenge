@@ -4,7 +4,8 @@
       "url": ["https://nft-marketplace-challenge-ten.vercel.app/"],
       "numberOfRuns": 5,
       "settings": {
-        "formFactor": "mobile"
+        "formFactor": "mobile",
+        "chromeFlags": ["--no-sandbox"]
       }
     },
     "upload": {

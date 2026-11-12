@@ -143,7 +143,7 @@ const summary = `${title}
 ${scope} Não é dado de usuário real (RUM/CrUX).
 
 - Data da coleta: ${new Date().toISOString()}
-- Commit de código/configuração: ${commit}
+- Commit do repositório no momento da coleta: ${commit}
 - Lighthouse: ${lighthouseVersion}
 - Dispositivo: emulação mobile padrão do Lighthouse
 - URL medida: ${inlineCode(measuredUrl)}
