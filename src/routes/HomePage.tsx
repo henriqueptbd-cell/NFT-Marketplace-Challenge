@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label'
 import { Pagination } from '@/components/ui/pagination'
 import { Select } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useNfts } from '@/hooks/useNfts'
+import { useNftPage, useNfts } from '@/hooks/useNfts'
 import { useSectionNav } from '@/hooks/useSectionNav'
 import { discoveryCopy } from '@/lib/discovery-copy'
 import { scrollToSection } from '@/lib/section-scroll'
@@ -83,7 +83,7 @@ export function HomePage() {
       priceMax: search.priceMax,
       sort: search.sort,
       page: search.page,
-      pageSize: 100,
+      pageSize: PAGE_SIZE,
     }),
     [
       search.collections,
@@ -95,7 +95,7 @@ export function HomePage() {
       search.sort,
     ],
   )
-  const nftQuery = useNfts(listParams)
+  const nftQuery = useNftPage(listParams)
   const filterOptionsQuery = useQuery({
     queryKey: ['nfts', 'filter-options'],
     queryFn: ({ signal }) => getNfts({ pageSize: 100 }, signal),
@@ -123,13 +123,11 @@ export function HomePage() {
       .map(([value, count]) => ({ value, label: value, count }))
   }, [allFilterNfts])
 
-  const nftList = nftQuery.data ?? []
-  const pageCount = Math.max(1, Math.ceil(nftList.length / PAGE_SIZE))
+  const nftList = nftQuery.data?.items ?? []
+  const totalNftCount = nftQuery.data?.total ?? 0
+  const pageCount = Math.max(1, Math.ceil(totalNftCount / PAGE_SIZE))
   const currentPage = Math.min(search.page, pageCount)
-  const visibleNfts = nftList.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  )
+  const visibleNfts = nftList
   const featuredNft = featuredQuery.data?.[0]
   const activeTab =
     search.sort === 'newest'
@@ -139,10 +137,20 @@ export function HomePage() {
         : discoveryCopy.tabs.values.all
 
   useEffect(() => {
-    if (nftQuery.isSuccess && search.page > pageCount) {
+    if (
+      nftQuery.isSuccess &&
+      !nftQuery.isPlaceholderData &&
+      search.page > pageCount
+    ) {
       updateSearch({ page: pageCount }, true)
     }
-  }, [nftQuery.isSuccess, pageCount, search.page, updateSearch])
+  }, [
+    nftQuery.isPlaceholderData,
+    nftQuery.isSuccess,
+    pageCount,
+    search.page,
+    updateSearch,
+  ])
 
   function handleSortChange(value: string) {
     const parsed = nftSortSchema.safeParse(value)
@@ -245,9 +253,9 @@ export function HomePage() {
           <div className="min-w-0">
             {nftQuery.data ? (
               <p className="sr-only" aria-live="polite">
-                {nftList.length === 1
+                {totalNftCount === 1
                   ? discoveryCopy.catalog.resultCountOne
-                  : discoveryCopy.catalog.resultCount(nftList.length)}
+                  : discoveryCopy.catalog.resultCount(totalNftCount)}
               </p>
             ) : null}
             <div className="mb-5 hidden items-end justify-end gap-4 sm:flex">

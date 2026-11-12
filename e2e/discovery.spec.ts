@@ -60,6 +60,21 @@ test('mobile filters update the URL, survive reload, and restore with browser ba
   ).not.toBeChecked()
 })
 
+test('catalog pagination loads distinct server pages', async ({ page }) => {
+  await openApp(page, '/')
+  const nftGrid = page.locator('main .grid.grid-cols-2')
+  const headings = nftGrid.getByRole('heading', { level: 2 })
+  await expect(headings).toHaveCount(12)
+  const firstPageNames = await headings.allTextContents()
+
+  await page.getByRole('button', { name: 'Ir para a página 2' }).click()
+  await expect(page).toHaveURL(/page=2/)
+  await expect(headings).toHaveCount(12)
+  await expect
+    .poll(() => headings.allTextContents())
+    .not.toEqual(firstPageNames)
+})
+
 test('detail renders API data and disables purchase for a sold-out edition', async ({
   page,
 }) => {

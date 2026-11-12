@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   getNft,
+  getNftPage,
   getNftReviews,
   getNfts,
   type NFTSearchParams,
@@ -9,6 +10,7 @@ import {
 export const nftQueryKeys = {
   all: ['nfts'] as const,
   list: (params: NFTSearchParams) => ['nfts', params] as const,
+  page: (params: NFTSearchParams) => ['nfts', 'page', params] as const,
   detail: (id: string) => ['nft', id] as const,
   reviews: (id: string) => ['nft', id, 'reviews'] as const,
 }
@@ -24,6 +26,14 @@ export function useNfts(
     queryFn: ({ signal }) => getNfts(requestParams, signal),
     placeholderData: keepPreviousData,
     enabled: options.enabled ?? true,
+  })
+}
+
+export function useNftPage(params: NFTSearchParams) {
+  return useQuery({
+    queryKey: nftQueryKeys.page(params),
+    queryFn: ({ signal }) => getNftPage(params, signal),
+    placeholderData: keepPreviousData,
   })
 }
 

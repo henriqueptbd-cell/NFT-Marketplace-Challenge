@@ -89,7 +89,9 @@ export const nftHandlers = [
       return apiErrorResponse(400, 'BAD_REQUEST', 'Sort order is invalid.')
     }
     const sort = parsedSort?.success ? parsedSort.data : 'relevance'
-    if (getActiveMockScenario() === 'empty') return HttpResponse.json([])
+    if (getActiveMockScenario() === 'empty') {
+      return HttpResponse.json([], { headers: { 'X-Total-Count': '0' } })
+    }
 
     const state = getMockState()
     const query = url.searchParams.get('query')?.trim().toLowerCase()
@@ -122,7 +124,9 @@ export const nftHandlers = [
       return right.trendingScore - left.trendingScore
     })
     const start = (page - 1) * pageSize
-    return HttpResponse.json(sorted.slice(start, start + pageSize))
+    return HttpResponse.json(sorted.slice(start, start + pageSize), {
+      headers: { 'X-Total-Count': String(sorted.length) },
+    })
   }),
 
   http.get('/api/nfts/:nftId/reviews', ({ params }) => {

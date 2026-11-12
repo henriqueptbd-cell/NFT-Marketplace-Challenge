@@ -27,6 +27,11 @@ export interface NFTSearchParams {
   pageSize?: number
 }
 
+export interface NFTPage {
+  items: NFT[]
+  total: number
+}
+
 const nftSearchParamsSchema = z
   .object({
     query: z.string().optional(),
@@ -43,17 +48,37 @@ const nftSearchParamsSchema = z
   })
   .strict()
 
-export async function getNfts(
-  params: NFTSearchParams = {},
-  signal?: AbortSignal,
-): Promise<NFT[]> {
+async function requestNfts(params: NFTSearchParams, signal?: AbortSignal) {
   const validated = nftSearchParamsSchema.parse(params)
-  const { data } = await apiClient.get<unknown>('/nfts', {
+  return apiClient.get<unknown>('/nfts', {
     params: validated,
     paramsSerializer: { indexes: null },
     signal,
   })
+}
+
+export async function getNfts(
+  params: NFTSearchParams = {},
+  signal?: AbortSignal,
+): Promise<NFT[]> {
+  const { data } = await requestNfts(params, signal)
   return nftListSchema.parse(data)
+}
+
+export async function getNftPage(
+  params: NFTSearchParams = {},
+  signal?: AbortSignal,
+): Promise<NFTPage> {
+  const { data, headers } = await requestNfts(params, signal)
+  const total = z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .safeParse(headers['x-total-count'])
+  if (!total.success) {
+    throw new TypeError('GET /nfts returned an invalid X-Total-Count header.')
+  }
+  return { items: nftListSchema.parse(data), total: total.data }
 }
 
 export async function getNft(

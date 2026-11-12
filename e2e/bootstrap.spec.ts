@@ -56,6 +56,18 @@ async function openApp(page: Page): Promise<void> {
   })
 }
 
+async function requestNftPage(page: Page, pageNumber: number) {
+  return page.evaluate(async (requestedPage) => {
+    const response = await fetch(`/api/nfts?page=${requestedPage}&pageSize=12`)
+    const items: unknown = await response.json()
+    return {
+      status: response.status,
+      total: response.headers.get('X-Total-Count'),
+      items,
+    }
+  }, pageNumber)
+}
+
 function asObject(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new TypeError('Expected an object response')
@@ -148,6 +160,31 @@ test('serves the shell and a 24-NFT catalog without image assets', async ({
       expect.objectContaining({ name: 'Golden Signal #160' }),
     ]),
   )
+})
+
+test('paginates NFT results in the API and reports the filtered total', async ({
+  page,
+}) => {
+  await openApp(page)
+  const firstPage = await requestNftPage(page, 1)
+  const secondPage = await requestNftPage(page, 2)
+
+  expect(firstPage.status).toBe(200)
+  expect(firstPage.total).toBe('24')
+  expect(Array.isArray(firstPage.items)).toBe(true)
+  expect(firstPage.items).toHaveLength(12)
+  expect(secondPage.status).toBe(200)
+  expect(secondPage.total).toBe('24')
+  expect(Array.isArray(secondPage.items)).toBe(true)
+  expect(secondPage.items).toHaveLength(12)
+
+  const firstIds = (firstPage.items as Array<Record<string, unknown>>).map(
+    (nft) => nft.id,
+  )
+  const secondIds = (secondPage.items as Array<Record<string, unknown>>).map(
+    (nft) => nft.id,
+  )
+  expect(secondIds.some((id) => firstIds.includes(id))).toBe(false)
 })
 
 test('supports authenticated resource endpoints and idempotent order creation', async ({
