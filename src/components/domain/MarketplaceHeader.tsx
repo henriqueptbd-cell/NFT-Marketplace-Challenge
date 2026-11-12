@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { Search, ShoppingCart, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { useCart } from '@/hooks/useCart'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useSectionNav } from '@/hooks/useSectionNav'
 import { discoveryCopy } from '@/lib/discovery-copy'
+import { cn } from '@/lib/cn'
 
 export interface MarketplaceHeaderProps {
   defaultQuery?: string
@@ -41,6 +42,9 @@ export function MarketplaceHeader({
   const currentUser = useCurrentUser()
   const cartQuery = useCart()
   const { search: homeSearch, onSectionClick } = useSectionNav()
+  const activeHash = useRouterState({
+    select: (state) => state.location.hash.replace(/^#/, ''),
+  })
   const query =
     queryDraft.source === defaultQuery ? queryDraft.value : defaultQuery
 
@@ -72,7 +76,7 @@ export function MarketplaceHeader({
       id={discoveryCopy.nav.anchors.home}
       className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur"
     >
-      <div className="mx-auto grid max-w-screen-2xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:grid-cols-[1fr_auto_1fr] sm:px-6 lg:px-8">
+      <div className="page-shell grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 py-3 sm:grid-cols-[1fr_auto_1fr]">
         <Link
           to="/"
           search={{}}
@@ -84,24 +88,33 @@ export function MarketplaceHeader({
           aria-label={discoveryCopy.nav.label}
           className="col-span-2 row-start-2 flex max-w-full gap-6 justify-self-center overflow-x-auto text-xs text-text-secondary sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:text-sm"
         >
-          {navigation.map((item) => (
-            <Link
-              key={item.anchor}
-              to="/"
-              hash={
-                item.anchor === discoveryCopy.nav.anchors.home
-                  ? undefined
-                  : item.anchor
-              }
-              search={homeSearch}
-              className="shrink-0 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={(event) => onSectionClick(event, item.anchor)}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isHome = item.anchor === discoveryCopy.nav.anchors.home
+            const isActive = isHome
+              ? activeHash === ''
+              : activeHash === item.anchor
+
+            return (
+              <Link
+                key={item.anchor}
+                to="/"
+                hash={isHome ? undefined : item.anchor}
+                search={homeSearch}
+                activeOptions={{ includeHash: true, includeSearch: false }}
+                className={cn(
+                  'shrink-0 border-b-2 pb-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  isActive
+                    ? 'border-primary text-primary'
+                    : 'border-transparent',
+                )}
+                onClick={(event) => onSectionClick(event, item.anchor)}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
-        <div className="col-start-2 row-start-1 flex items-center gap-1 justify-self-end sm:col-start-3">
+        <div className="col-start-2 row-start-1 flex items-center gap-5 justify-self-end sm:col-start-3">
           {searchOpen ? (
             <form
               role="search"
@@ -183,7 +196,7 @@ export function MarketplaceHeader({
           ) : (
             <Link
               to="/login"
-              className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-button border border-primary px-3 text-sm font-medium text-primary transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4"
+              className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-button bg-primary px-3 text-sm font-semibold text-on-primary transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4"
             >
               {discoveryCopy.header.login}
             </Link>
