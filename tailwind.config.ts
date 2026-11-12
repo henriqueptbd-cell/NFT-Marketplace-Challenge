@@ -18,9 +18,9 @@ export default {
         selection: '#D0884C',
       },
       fontFamily: {
-        sans: ['JetBrains Mono', 'monospace'],
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['Playfair Display', 'serif'],
+        sans: 'var(--font-sans)',
+        mono: 'var(--font-mono)',
+        display: 'var(--font-display)',
       },
       borderRadius: {
         card: '0.5rem',

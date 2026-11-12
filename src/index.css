@@ -3,8 +3,23 @@
 @tailwind utilities;
 
 :root {
+  /* Tipografia — alterar aqui reflete na aplicação inteira.
+     `--font-display` (condensada) vale para títulos, logo e CTAs em caixa
+     alta; `--font-mono` fica para preços, hashes e IDs de token. */
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --tracking-display: 0.01em;
+
+  /* Layout — largura útil e goteira lateral da página.
+     Alterar estes dois valores reposiciona header, home, catálogo,
+     carrinho, checkout e perfil de uma vez (classe `.page-shell`). */
+  --layout-max-width: 75rem;
+  --layout-gutter: 1rem;
+
   color-scheme: dark;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-sans);
   color: #f8f0d8;
   background: #140c08;
   font-synthesis: none;
@@ -26,11 +41,44 @@ body {
   margin: 0;
   background: #140c08;
   color: #f8f0d8;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-sans);
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Títulos usam `font-display` no markup; o espaçamento fica no token. */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
+}
+
+/* Casca comum de todas as páginas: centraliza, limita a largura e aplica
+   a goteira lateral responsiva definida nos tokens de layout. */
+.page-shell {
+  width: 100%;
+  margin-inline: auto;
+  max-width: var(--layout-max-width);
+  padding-inline: var(--layout-gutter);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --layout-gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --layout-gutter: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --layout-gutter: 2.5rem;
+  }
 }
 
 button,
