@@ -386,7 +386,7 @@ function WalletsEditor({
 function SettingsSkeleton() {
   return (
     <div
-      className="mx-auto grid max-w-screen-2xl gap-6 px-4 py-10 sm:px-6 lg:px-8"
+      className="page-shell grid gap-6 py-10"
       role="status"
       aria-label={accountCopy.common.loading}
     >
@@ -495,7 +495,7 @@ export function WalletsPage() {
   }
   if (walletsQuery.isError || !walletsQuery.data) {
     return (
-      <div className="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="page-shell py-10">
         <ErrorState
           title={accountCopy.wallets.title}
           message={apiErrorMessage(

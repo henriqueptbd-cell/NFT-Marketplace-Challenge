@@ -453,7 +453,7 @@ export function ProfilePage() {
   }
   if (profileQuery.isError || !profileQuery.data) {
     return (
-      <div className="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="page-shell py-10">
         <ErrorState
           title={accountCopy.profile.title}
           message={apiErrorMessage(

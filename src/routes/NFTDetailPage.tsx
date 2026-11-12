@@ -35,7 +35,7 @@ function errorMessage(error: unknown, fallback: string): string {
 
 function DetailLoading() {
   return (
-    <main className="mx-auto grid max-w-screen-2xl gap-8 px-4 py-8 pb-32 sm:px-6 md:grid-cols-2 md:py-12 md:pb-12 lg:px-8">
+    <main className="page-shell grid gap-8 py-8 pb-32 md:grid-cols-2 md:py-12 md:pb-12">
       <Skeleton
         label={discoveryCopy.detail.loading}
         className="aspect-[3/4] w-full rounded-card"
@@ -167,7 +167,7 @@ export function NFTDetailPage() {
           />
         </main>
       ) : nft ? (
-        <main className="mx-auto max-w-screen-2xl px-4 pb-72 pt-6 sm:px-6 md:pb-16 md:pt-10 lg:px-8">
+        <main className="page-shell pb-72 pt-6 md:pb-16 md:pt-10">
           <div className="grid items-start gap-8 md:grid-cols-2 lg:gap-12">
             <section aria-label={discoveryCopy.accessibility.gallery(nft.name)}>
               <NFTImage

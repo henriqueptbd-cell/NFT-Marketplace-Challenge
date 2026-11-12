@@ -124,7 +124,7 @@ export function AccountLayout({
   return (
     <div className="min-h-screen bg-background">
       <MarketplaceHeader onSearchSubmit={searchMarketplace} />
-      <main className="mx-auto grid w-full max-w-screen-2xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 lg:px-8 lg:py-12">
+      <main className="page-shell grid w-full gap-6 py-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 lg:py-12">
         <aside className="hidden lg:block">
           <div className="sticky top-40 rounded-card border border-border bg-surface p-4">
             <p className="mb-2 px-4 font-display text-lg font-bold text-text-primary">

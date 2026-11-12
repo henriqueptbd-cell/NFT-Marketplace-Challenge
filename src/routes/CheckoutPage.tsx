@@ -393,7 +393,7 @@ export function CheckoutPage() {
   return (
     <div className="min-h-screen bg-background text-text-primary">
       <MarketplaceHeader onSearchSubmit={navigateHome} />
-      <main className="mx-auto max-w-screen-2xl px-4 pb-36 pt-6 sm:px-6 sm:pb-16 lg:px-8 lg:pt-10">
+      <main className="page-shell pb-36 pt-6 sm:pb-16 lg:pt-10">
         <div className="grid gap-5">
           <Breadcrumb
             ariaLabel={copy.checkout.breadcrumb}
