@@ -135,7 +135,7 @@ Ative no console do browser com `window.__mswScenario('nome')`; nomes são valid
 | `slow-3s`                    | Espera três segundos antes de responder às requisições REST.                                                                                                     |
 | `flaky-500`                  | A cada duas requisições REST, alterna entre `500 INTERNAL_ERROR` e resposta normal.                                                                              |
 | `cart-merge-fails`           | O próximo `POST /cart/merge` autenticado e com ID de carrinho válido retorna `500 INTERNAL_ERROR` uma vez; as demais requisições não são afetadas.               |
-| `session-expired`            | O primeiro endpoint autenticado retorna `401 UNAUTHORIZED`; o login seguinte pode recuperar a sessão.                                                            |
+| `session-expired`            | O próximo endpoint autenticado retorna `401 UNAUTHORIZED`; a interface mostra toast, abre login sobre a rota atual e retoma essa rota após autenticar novamente. |
 | `coupon-expired`             | Uma tentativa de aplicar cupom retorna `422 COUPON_EXPIRED`.                                                                                                     |
 | `price-changed-mid-checkout` | `POST /quote` eleva em `0.10` ETH o primeiro NFT, atualiza o carrinho e publica `nft.updated`, depois responde `409 PRICE_CHANGED`; novo quote usa o preço novo. |
 | `edition-sold-out`           | `POST /quote` esgota o primeiro NFT, publica `nft.updated` e responde `409 EDITION_SOLD_OUT`; a disponibilidade alterada fica persistida.                        |
