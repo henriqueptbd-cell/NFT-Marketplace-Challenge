@@ -20,7 +20,7 @@ npm run lighthouse:site
 npm run lighthouse:site:matrix
 ```
 
-`npm run lighthouse` compila o bundle de produção e usa `lighthouserc.json` para cinco execuções mobile da Home local. `npm run lighthouse:site` usa `lighthouserc.site.json` para cinco execuções mobile da Home publicada, sem rebuild. `npm run lighthouse:site:matrix` executa três configurações separadas para Home desktop, detalhe mobile e detalhe desktop no site público. As configurações estão em `lighthouserc.site.home.desktop.json`, `lighthouserc.site.detail.mobile.json` e `lighthouserc.site.detail.desktop.json`.
+`npm run lighthouse` compila o bundle de produção e usa `lighthouserc.json` para cinco execuções mobile da Home local. `npm run lighthouse:site` usa `lighthouse/lighthouserc.site.json` para cinco execuções mobile da Home publicada, sem rebuild. `npm run lighthouse:site:matrix` executa três configurações separadas para Home desktop, detalhe mobile e detalhe desktop no site público. As configurações estão em `lighthouse/lighthouserc.site.home.desktop.json`, `lighthouse/lighthouserc.site.detail.mobile.json` e `lighthouse/lighthouserc.site.detail.desktop.json`.
 
 Os resumos versionados são [`summary.md`](../reports/lighthouse/summary.md), [`site-summary.md`](../reports/lighthouse/site-summary.md), [`site-home-desktop-summary.md`](../reports/lighthouse/site-home-desktop-summary.md), [`site-detail-mobile-summary.md`](../reports/lighthouse/site-detail-mobile-summary.md) e [`site-detail-desktop-summary.md`](../reports/lighthouse/site-detail-desktop-summary.md). Cada configuração grava HTML/JSON e `manifest.json` em sua pasta própria de `reports/lighthouse/`; esses artefatos brutos são ignorados pelo Git, enquanto os resumos Markdown podem ser revisados e versionados.
 
