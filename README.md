@@ -2,6 +2,8 @@
 
 **Aplicação publicada:** [Abrir marketplace Kurio](https://nft-marketplace-challenge-ten.vercel.app/)
 
+**Repositório GitHub:** [henriqueptbd-cell/NFT-Marketplace-Challenge](https://github.com/henriqueptbd-cell/NFT-Marketplace-Challenge)
+
 Frontend do marketplace Kurio com React/TypeScript, contratos Zod, cliente Axios, TanStack Query/Router, MSW v2 e eventos Socket.IO simulados. A aplicação cobre descoberta (Home e detalhe), autenticação e configurações da conta, carrinho de visitante/autenticado e checkout com cotação, pedido idempotente e confirmação.
 
 ## Documentação
