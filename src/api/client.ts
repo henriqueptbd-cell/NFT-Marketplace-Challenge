@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from 'axios'
 import { userSchema, type User } from '@/api/types/user'
+import { mocksEnabled } from '@/lib/env'
 
 export const CURRENT_USER_STORAGE_KEY = 'kurio:user:v1'
 export const LEGACY_SESSION_STORAGE_KEY = 'kurio:session:v1'
@@ -51,10 +52,7 @@ export function persistMockSessionCookie(
   token: string,
   rememberMe = false,
 ): void {
-  if (
-    typeof document === 'undefined' ||
-    import.meta.env.VITE_ENABLE_MOCKS !== 'true'
-  ) {
+  if (typeof document === 'undefined' || !mocksEnabled) {
     return
   }
   const maxAge = rememberMe ? '; Max-Age=2592000' : ''

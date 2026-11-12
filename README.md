@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-`VITE_ENABLE_MOCKS=true` inicia o Service Worker MSW em desenvolvimento e nos bundles de demonstração. O worker `public/mockServiceWorker.js` é versionado; o build padrão e `build:demo` habilitam os mocks para `vite preview`.
+O Service Worker MSW inicia por padrão em desenvolvimento e nos bundles de demonstração; `VITE_ENABLE_MOCKS=false` é o opt-out explícito. O worker `public/mockServiceWorker.js` é versionado; o build padrão e `build:demo` habilitam os mocks para `vite preview`.
 
 ```bash
 npm run build:demo
@@ -27,7 +27,7 @@ Para apontar a um backend real, defina `VITE_ENABLE_MOCKS=false` no ambiente de 
 | Variável             | Uso                         | Padrão de demonstração |
 | -------------------- | --------------------------- | ---------------------- |
 | `VITE_API_URL`       | Base URL do Axios           | `/api`                 |
-| `VITE_ENABLE_MOCKS`  | Inicia MSW no browser       | `true`                 |
+| `VITE_ENABLE_MOCKS`  | `false` desliga o MSW       | ligado                 |
 | `VITE_SOCKET_URL`    | Origem do cliente Socket.IO | origem da aplicação    |
 | `VITE_MOCK_SCENARIO` | Cenário opcional de boot    | `default`              |
 
@@ -204,7 +204,7 @@ npx vercel          # preview deployment
 npx vercel --prod   # produção
 ```
 
-Ou importe o repositório em [vercel.com/new](https://vercel.com/new); nenhuma variável de ambiente precisa ser configurada para a demonstração, porque `.env.production` (versionado) já traz `VITE_ENABLE_MOCKS=true`.
+Ou importe o repositório em [vercel.com/new](https://vercel.com/new); nenhuma variável de ambiente precisa ser configurada para a demonstração, porque os mocks são o padrão do build. Só um backend real exige `VITE_ENABLE_MOCKS=false`.
 
 O [`vercel.json`](./vercel.json) cuida do que o preset Vite não cobre:
 

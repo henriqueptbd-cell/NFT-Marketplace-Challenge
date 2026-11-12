@@ -11,9 +11,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from '@/App'
 import '@/index.css'
+import { mocksEnabled } from '@/lib/env'
 
 async function startApplication(): Promise<void> {
-  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
+  if (mocksEnabled) {
     try {
       const { worker } = await import('@/mocks/browser')
       await worker.start({ onUnhandledRequest: 'bypass' })

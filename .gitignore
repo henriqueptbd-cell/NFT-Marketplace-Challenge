@@ -3,9 +3,10 @@ node_modules
 dist
 dist-ssr
 
-# Local-only environment variables
+# Local-only environment variables (only .env.example is versioned)
 .env
-.env.*.local
+.env.*
+!.env.example
 
 # Logs
 logs
