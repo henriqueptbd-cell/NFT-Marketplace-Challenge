@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNfts } from '@/hooks/useNfts'
 import { useSectionNav } from '@/hooks/useSectionNav'
 import { discoveryCopy } from '@/lib/discovery-copy'
+import { scrollToSection } from '@/lib/section-scroll'
 import {
   parseMarketplaceSearch,
   stripDefaultSearch,
@@ -66,6 +67,8 @@ export function HomePage() {
             page: updates.page ?? 1,
           }),
         replace,
+        // Filtro não é troca de página: manter a posição do catálogo na tela.
+        resetScroll: false,
       })
     },
     [navigate],
@@ -360,7 +363,12 @@ export function HomePage() {
                         <Pagination
                           page={currentPage}
                           pageCount={pageCount}
-                          onPageChange={(page) => updateSearch({ page })}
+                          onPageChange={(page) => {
+                            updateSearch({ page })
+                            scrollToSection(
+                              discoveryCopy.nav.anchors.marketplace,
+                            )
+                          }}
                           ariaLabel={discoveryCopy.pagination.label}
                           labels={{
                             previous: discoveryCopy.pagination.previous,
