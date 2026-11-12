@@ -11,7 +11,8 @@ Esta pasta reúne a referência visual, a visão técnica e os handoffs para que
 | [Handoff de identidade e carteiras](backend-auth-and-wallets.md)               | Como funcionam autenticação, cadastro, perfil e carteiras no mock; segurança, persistência e trabalho necessário para um backend real. |
 | [Handoff de carrinho, checkout e pagamentos](backend-commerce-and-payments.md) | Carrinho guest, merge, cotação, pedido, retry, estoque e fronteira entre pagamento mockado e futura integração real.                   |
 | [Desenvolvimento e testes](development-and-testing.md)                         | Instalação, comandos, MSW, cenários, Playwright, CI e deploy Vercel condicional.                                                       |
-| [Design system e telas do Figma](design-system.md)                             | Extração visual estimada, layouts cobertos, assets necessários e lacunas do PDF para futura validação.                                 |
+| [Performance Lighthouse](performance.md)                                       | Como rodar Lighthouse mobile, interpretar LCP/CLS/TBT e encontrar relatórios brutos e baseline.                                        |
+| [Design system e telas do Figma](design-system.md)                             | Extração visual estimada, quatro artes atualmente usadas e lacunas de correspondência individual com o PDF.                            |
 
 ## Leitura sugerida para implementar um backend
 

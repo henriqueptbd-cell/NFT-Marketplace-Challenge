@@ -17,6 +17,9 @@
     "type-check": "tsc -b --pretty false",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "lighthouse": "npm run build && npm run lighthouse:ci",
+    "lighthouse:ci": "node scripts/lighthouse-ci.mjs",
+    "lighthouse:site": "node scripts/lighthouse-ci.mjs lighthouserc.site.json reports/lighthouse/site-summary.md",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -50,6 +53,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@lhci/cli": "0.16.1",
     "@playwright/test": "^1.65.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",

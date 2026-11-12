@@ -55,6 +55,20 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Run Lighthouse mobile audit (5 runs)
+        run: npm run lighthouse:ci
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-reports-${{ github.run_id }}
+          path: |
+            reports/lighthouse/runs/
+            reports/lighthouse/summary.md
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Upload Playwright diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v7

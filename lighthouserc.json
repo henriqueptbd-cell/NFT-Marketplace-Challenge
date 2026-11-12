@@ -1,0 +1,17 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "./dist",
+      "url": ["http://localhost/"],
+      "isSinglePageApplication": true,
+      "numberOfRuns": 5,
+      "settings": {
+        "formFactor": "mobile"
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./reports/lighthouse/runs"
+    }
+  }
+}

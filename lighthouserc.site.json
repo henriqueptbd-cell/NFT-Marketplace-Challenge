@@ -1,0 +1,15 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["https://nft-marketplace-challenge-ten.vercel.app/"],
+      "numberOfRuns": 5,
+      "settings": {
+        "formFactor": "mobile"
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./reports/lighthouse/site-runs"
+    }
+  }
+}

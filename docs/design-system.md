@@ -1,7 +1,7 @@
 # Kurio — extração do design system
 
 > **Fonte:** `FrontendChallenge.pdf`, 15 páginas de screens exportados do Figma.
-> **Escopo:** registro da extração visual original do PDF. Os assets não foram extraídos; os arquivos de imagem do NFT devem ser fornecidos pelo usuário em `public/nfts/`. A implementação do produto fica em `src/`.
+> **Escopo:** registro da extração visual original do PDF; os arquivos originais não foram exportados dele. O repositório atualmente contém quatro artes WebP em `public/nfts/` que as fixtures usam no site. A implementação do produto fica em `src/`.
 >
 > **Confiabilidade das medidas:** o PDF é uma exportação rasterizada, não contém tokens nem metadados de fonte. Os hex abaixo foram estimados pela amostragem das páginas renderizadas (com pequenas variações por compressão); tamanhos, pesos, radii e espaçamentos são aproximações visuais em pixels CSS. Confirmar esses valores no Figma antes de tratá-los como tokens exatos.
 
@@ -149,14 +149,14 @@ Divider e login social Google/Facebook, seguido do link para criar conta; layout
 Marca e título “Criar perfil de colecionador”; campos de usuário, e-mail, senha e confirmação em coluna.
 CTA “Criar perfil”, alternativas sociais Google/Facebook e link para entrar; layout sem header global.
 
-## 7. Inventário de assets de imagem necessários
+## 7. Inventário de imagens e relação visual com o Figma
 
-Os screens usam retratos quadrados/recortáveis de primatas estilizados. A lista abaixo identifica os NFTs nomeados no PDF e o uso provável/observado; os arquivos **não foram extraídos**. Sugestão de nomes de arquivo é apenas convenção para futura adição em `public/nfts/`. A exportação reaproveita retratos entre diferentes NFTs; confirmar no Figma se cada token precisa de arte única ou se o reaproveitamento é intencional.
+Os screens usam retratos quadrados/recortáveis de primatas estilizados. O projeto já contém quatro arquivos reais de 800×800: `public/nfts/ape1.webp`, `ape2.webp`, `ape3.webp` e `ape4.webp`. As fixtures associam essas quatro artes ciclicamente aos 24 NFTs, então as imagens renderizam no site sem depender do fallback, mas nem cada NFT tem uma imagem exclusiva nem o nome do arquivo identifica a peça. Os nomes específicos sugeridos abaixo são convenções caso as artes sejam futuramente individualizadas; não são os paths usados hoje. A associação visual nome–retrato foi inferida do raster do PDF e deve ser conferida no Figma.
 
-| NFT / arquivo sugerido | Descrição visual do macaco | Onde aparece |
+| NFT do PDF / nome futuro sugerido | Descrição visual do macaco | Onde aparece |
 |---|---|---|
 | **Emerald Ape #042** — `emerald-ape-042.webp` | Macaco marrom de cabelo espetado, óculos redondos verdes com aro dourado, jaqueta varsity verde-esmeralda e pingente. | Hero da Home desktop/mobile, cards da Home, detalhe desktop/mobile, carrinho/checkout, modal de confirmação e miniaturas editoriais. |
-| **Sage Nomad #009** — `sage-nomad-009.webp` | Retrato de macaco em roupa de explorador/nomad; aparência do card desktop não é inequívoca no raster e pode reutilizar o gorila de chapéu. Validar associação nome–retrato. | Grade da Home, sobreposição de login/registro desktop, itens de carrinho/checkout quando presentes. |
+| **Sage Nomad #089** — `sage-nomad-089.webp` | Retrato de macaco em roupa de explorador/nomad; aparência do card desktop não é inequívoca no raster e pode reutilizar o gorila de chapéu. Validar associação nome–retrato. | Grade da Home, sobreposição de login/registro desktop, itens de carrinho/checkout quando presentes. |
 | **Neon Vessel #552** — `neon-vessel-552.webp` | Retrato estilizado de macaco de aparência escura com blazer creme e gola alta escura no card que aparenta corresponder ao item; confirmar mapeamento visual no Figma. | Grade da Home desktop, associado a badge de raridade em algumas composições; não aparece como item nomeado nas telas de compra. |
 | **Cosmic Bloom #118** — `cosmic-bloom-118.webp` | Macaco cinza, chapéu bucket verde-oliva e moletom roxo. | Home desktop/mobile, recomendados da página de detalhe/carrinho, checkout e textos/cartões editoriais. |
 | **Violet Nomad #314** — `violet-nomad-314.webp` | Macaco cinza com chapéu bucket verde-oliva e moletom roxo; visual semelhante ao Cosmic Bloom, sugerindo reuso ou variação não evidente no PDF. | Home desktop, detalhe/recomendações, carrinho desktop/mobile, checkout e modal de confirmação. |
@@ -165,7 +165,7 @@ Os screens usam retratos quadrados/recortáveis de primatas estilizados. A lista
 | **Golden Frequency #071** — `golden-frequency-071.webp` | Macaco cinza em moletom roxo e chapéu bucket; aparência muito próxima de Cosmic Bloom/Violet Nomad. | Grade da Home desktop. |
 | **Golden Signal #160** — `golden-signal-160.webp` | Macaco dourado/alaranjado usando fones verdes e jaqueta clara; visual próximo ao Golden Beat. | Grade da Home desktop, recomendações da coleção e faixa “mais desta coleção”. |
 
-**Requisitos de entrega a confirmar ao adicionar os arquivos:** uma imagem principal por NFT, resolução/origem, proporção e crop de cards, existência de imagem hero diferente da miniatura, versões responsivas/retina e texto alternativo. Não há arquivos de imagem referenciados ou exportados junto com esta documentação.
+**Pontos para revisar se forem adicionadas artes individuais:** confirmar uma imagem por NFT, resolução/origem, proporção e crop de cards, eventual imagem hero diferente da miniatura, versões responsivas/retina e texto alternativo. Os quatro arquivos atuais funcionam como arte compartilhada do catálogo; o fallback do `NFTImage` continua disponível para paths futuros inválidos ou ausentes.
 
 ## 8. Lacunas do PDF para validação
 

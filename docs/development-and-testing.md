@@ -8,7 +8,7 @@ O [package.json](../package.json) declara Node `24.x` em `engines` e fixa o gere
 
 ```bash
 npm ci
-npx playwright install chromium   # uma vez, para executar E2E localmente
+npx playwright install chromium   # uma vez, para E2E e auditoria Lighthouse
 npm run dev
 ```
 
@@ -42,12 +42,18 @@ O mock de Socket.IO usa `socket.io-client` **4.8.4** e `@mswjs/socket.io-binding
 
 Os testes em [e2e](../e2e/bootstrap.spec.ts) são Playwright contra o app com MSW no browser. Em conjunto, os quatro specs atuais cobrem 27 casos: inicialização e dados do catálogo, contratos/erros de API, autenticação, idempotência de pedidos, cenários de falha, socket com versões, filtros e histórico de navegação, detalhe/avaliações, perfil/carteiras, carrinho de visitante, merge após login e checkout. Exemplos concretos: `discovery.spec.ts` verifica filtro móvel refletido na URL após reload e voltar; `account.spec.ts` verifica sessão, logout e validação de endereços; `cart-checkout.spec.ts` testa cupom, quantidade/estoque, retry após timeout e recusa de pagamento; `bootstrap.spec.ts` verifica retry idempotente e atualização realtime fora de ordem. Os testes não substituem integração com API, pagamentos, carteira blockchain ou socket reais.
 
+## Lighthouse e evidência de performance
+
+O comando `npm run lighthouse` cria um build de produção local e faz cinco execuções mobile da Home. `npm run lighthouse:site` faz outra coleta, também com cinco execuções, diretamente contra a aplicação [publicada na Vercel](https://nft-marketplace-challenge-ten.vercel.app/), sem rebuild. As configurações estão em `lighthouserc.json` e `lighthouserc.site.json`; `scripts/lighthouse-ci.mjs` usa o Chromium do Playwright, calcula medianas independentes de LCP, CLS e TBT e gera [`reports/lighthouse/summary.md`](../reports/lighthouse/summary.md) e [`reports/lighthouse/site-summary.md`](../reports/lighthouse/site-summary.md). Os HTML/JSON e manifests brutos ficam em `reports/lighthouse/runs/` e `reports/lighthouse/site-runs/`, ignorados pelo Git; a CI executa o teste local e anexa seus relatórios como artifact por 30 dias. Para executar apenas a coleta local após um build existente, use `npm run lighthouse:ci`.
+
+Os dois relatórios são medidas sintéticas: o primeiro testa o bundle local; o segundo testa a Vercel pública. Nenhum representa usuários reais. LCP e CLS são Core Web Vitals; TBT é uma métrica de laboratório usada como proxy de interatividade, não um Core Web Vital. A metodologia, limitações e fontes oficiais estão no [guia Lighthouse](./performance.md).
+
 ## Backend real (pendente)
 
 Para testar uma integração real, configure `VITE_ENABLE_MOCKS=false` e URLs compatíveis para API e socket no ambiente de build. É necessário que esses serviços implementem os contratos usados pelo frontend, incluindo cookies/sessões, cabeçalhos de carrinho e idempotência, erros esperados e eventos realtime versionados. O repositório descreve contratos, mas esta configuração por si só não cria nem confirma serviços. Faça validação de rede, autenticação e CORS com o backend provisionado antes de considerar o fluxo integrado.
 
 ## CI, build e publicação
 
-O workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) roda em PRs direcionadas a `main`, pushes para `main` e disparo manual (`workflow_dispatch`). Seu único job, em Ubuntu 24.04, faz checkout; configura Node 24 com cache npm; instala npm 10.9.9; executa `npm ci`; instala Chromium e dependências do Playwright; verifica formatação, tipos e lint; roda E2E com `CI=true`; e finalmente constrói o bundle de produção. Em falha, tenta anexar `test-results/` por sete dias. **Isso é CI (checks e build), não deployment**: o YAML não publica artefatos em Vercel nem contém etapa de deploy.
+O workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) roda em PRs direcionadas a `main`, pushes para `main` e disparo manual (`workflow_dispatch`). Seu único job, em Ubuntu 24.04, faz checkout; configura Node 24 com cache npm; instala npm 10.9.9; executa `npm ci`; instala Chromium e dependências do Playwright; verifica formatação, tipos e lint; roda E2E com `CI=true`; constrói o bundle de produção e coleta cinco resultados Lighthouse mobile. O workflow anexa o artifact Lighthouse por 30 dias e, em falha, tenta anexar `test-results/` por sete dias. **Isso é CI (checks, build e medição), não deployment**: o YAML não publica a aplicação em Vercel nem contém etapa de deploy.
 
 O [vercel.json](../vercel.json) configura Vite, `npm run build`, saída `dist`, fallback de rotas SPA sem reescrever `/api/*`, cabeçalhos de segurança e cache. Se a integração Git da Vercel estiver configurada para este repositório, ela pode executar deploys Preview/Production conforme a branch e as configurações daquele projeto. A existência do arquivo e o sucesso da CI não confirmam que essa integração esteja conectada nem que algum deploy tenha sido publicado. Verifique o dashboard da Vercel e seus logs; configure ali variáveis de build apropriadas ao destino, distinguindo explicitamente demo de backend real.

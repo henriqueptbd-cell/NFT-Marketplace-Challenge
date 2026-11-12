@@ -1,5 +1,7 @@
 # Kurio — NFT Marketplace
 
+**Aplicação publicada:** [Abrir marketplace Kurio](https://nft-marketplace-challenge-ten.vercel.app/)
+
 Frontend do marketplace Kurio com React/TypeScript, contratos Zod, cliente Axios, TanStack Query/Router, MSW v2 e eventos Socket.IO simulados. A aplicação cobre descoberta (Home e detalhe), autenticação e configurações da conta, carrinho de visitante/autenticado e checkout com cotação, pedido idempotente e confirmação.
 
 ## Documentação
@@ -42,7 +44,7 @@ As credenciais são fixtures locais exclusivas do mock. O handler remove a senha
 
 Os contratos Zod e tipos inferidos ficam em `src/api/types/`: `Session`, `User`, `CollectorProfile`, `NFT`, `NftReview`, `Favorite`, `CartItem`, `Cart`, `Coupon`, `Quote`, `Order`, `Wallet` e `ApiError`. `NFT` inclui `images[]`, `rating`, `reviewCount`, `createdAt` e `trendingScore` para detalhe, galeria e ordenação. `rating` e `reviewCount` são derivados das avaliações de `src/mocks/fixtures/reviews.ts`, então a nota do catálogo e a média da aba "Avaliações de colecionadores" nunca divergem.
 
-Preços, descontos, taxas, subtotais e totais ETH trafegam como strings decimais (`"1.19"`, `"26.846"`); a interface não os converte para `number`/float. Os cálculos usam helpers decimais baseados em unidades inteiras; `PriceDisplay` mostra ao menos duas casas e preserva casas significativas adicionais (por exemplo, `0.004 ETH`). `NFT.image` e cada item de `NFT.images[]` são paths como `/nfts/emerald-ape-042.webp`. Os arquivos ainda não estão no repositório; `NFTImage` preserva a proporção e usa fallback até você adicioná-los em `public/nfts/`.
+Preços, descontos, taxas, subtotais e totais ETH trafegam como strings decimais (`"1.19"`, `"26.846"`); a interface não os converte para `number`/float. Os cálculos usam helpers decimais baseados em unidades inteiras; `PriceDisplay` mostra ao menos duas casas e preserva casas significativas adicionais (por exemplo, `0.004 ETH`). `NFT.image` e cada item de `NFT.images[]` são paths. As quatro artes WebP atuais (`/nfts/ape1.webp`–`/nfts/ape4.webp`, 800×800) existem em `public/nfts/` e são usadas pelo catálogo; as 24 fixtures as reutilizam ciclicamente. `NFTImage` mantém a proporção e usa fallback somente se o caminho estiver vazio ou a imagem falhar; as imagens atuais não dependem desse fallback.
 
 Todo erro REST tem formato `{ code, message, fieldErrors? }`. `fieldErrors` é opcional; o status HTTP identifica a classe do erro. Os handlers simulam `400`, `401`, `403`, `404`, `409`, `422` e `500`.
 
@@ -164,7 +166,7 @@ src/
   components/domain/              NFTImage, linhas de carrinho, resumo e confirmação
   hooks/                          Hooks TanStack Query
   lib/                            Validação, decimal ETH e utilitários
-public/nfts/                      Destino dos assets que serão adicionados pelo usuário
+public/nfts/                      Quatro artes WebP do catálogo: ape1.webp–ape4.webp
 ```
 
 ## Comandos
@@ -178,7 +180,11 @@ npm run build          # type-check + build com mocks de demo
 npm run build:demo     # build explícito de demonstração
 npm run preview:demo   # servir dist depois de build:demo
 npm run test:e2e       # Playwright
+npm run lighthouse     # build de produção + 5 medições Lighthouse mobile da Home
+npm run lighthouse:site # 5 medições Lighthouse mobile na URL publicada
 ```
+
+O [baseline Lighthouse local](./reports/lighthouse/summary.md) e a [auditoria do site publicado](./reports/lighthouse/site-summary.md) registram LCP, CLS e TBT por execução e suas medianas. Consulte também o [guia de performance](./docs/performance.md). Ambos são testes de laboratório, não medições de usuários reais.
 
 ## Deploy (Vercel)
 
@@ -186,7 +192,7 @@ O projeto é um SPA estático: a Vercel detecta o preset Vite, roda `npm run bui
 
 ### CI/CD
 
-O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda em pull requests para `main`, em pushes para `main` e manualmente. Ele usa Ubuntu 24.04, Node 24 e npm 10.9.9 (versões declaradas pelo projeto), instala com `npm ci`, valida formatação, TypeScript e lint, executa os testes E2E do Playwright no Chromium e confirma o build de produção usado na Vercel. Em caso de falha, guarda `test-results/` como artefato para diagnóstico.
+O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda em pull requests para `main`, em pushes para `main` e manualmente. Ele usa Ubuntu 24.04, Node 24 e npm 10.9.9 (versões declaradas pelo projeto), instala com `npm ci`, valida formatação, TypeScript e lint, executa os testes E2E do Playwright no Chromium, confirma o build de produção usado na Vercel e coleta cinco medições Lighthouse mobile da Home. Os HTML/JSON e as medianas ficam no artifact da execução por 30 dias; em falha, guarda `test-results/` para diagnóstico.
 
 O deploy fica a cargo da integração Git da Vercel, evitando duplicar credenciais de deploy no GitHub Actions: com o repositório conectado no projeto Vercel, PRs geram Preview Deployments e pushes para a branch Production (normalmente `main`) geram Production Deployments. Se a integração Git da Vercel ainda não estiver conectada, conecte o repositório nas configurações do projeto Vercel; o workflow de CI não requer secrets.
 
