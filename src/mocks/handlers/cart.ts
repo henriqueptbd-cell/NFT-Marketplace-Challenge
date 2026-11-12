@@ -218,6 +218,13 @@ export const cartHandlers = [
         'A valid guest cart ID is required.',
       )
     }
+    if (consumeMockScenario('cart-merge-fails')) {
+      return apiErrorResponse(
+        500,
+        'INTERNAL_ERROR',
+        'The guest cart could not be merged.',
+      )
+    }
 
     const guestOwnerId = `guest:${guestCartId}`
     const state = getMockState()

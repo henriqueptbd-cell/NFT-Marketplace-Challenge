@@ -6,6 +6,7 @@ export const mockScenarioSchema = z.enum([
   'empty',
   'slow-3s',
   'flaky-500',
+  'cart-merge-fails',
   'session-expired',
   'coupon-expired',
   'price-changed-mid-checkout',

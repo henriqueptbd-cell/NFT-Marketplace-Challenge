@@ -208,7 +208,7 @@ test('falha transitória do merge pós-login informa e permite retry', async ({
   await addEmeraldApe(page)
   await openRoute(page, '/login')
   await expect(authDialog(page)).toBeVisible()
-  await setScenario(page, 'flaky-500')
+  await setScenario(page, 'cart-merge-fails')
   await page.locator('#login-email').fill('user@kurio.io')
   await page.locator('#login-password').fill('demo1234')
   await authDialog(page)
