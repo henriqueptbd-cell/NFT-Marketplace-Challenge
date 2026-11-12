@@ -28,6 +28,18 @@ const navigation = [
   { label: discoveryCopy.nav.learn, anchor: discoveryCopy.nav.anchors.learn },
 ]
 
+/**
+ * Produto, carrinho e pagamento são continuações do marketplace: o item de
+ * menu "Mercado" continua ativo mesmo fora da âncora da home.
+ */
+const marketplaceFlowPaths = ['/nft', '/cart', '/checkout']
+
+function isMarketplaceFlow(pathname: string): boolean {
+  return marketplaceFlowPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
+}
+
 export function MarketplaceHeader({
   defaultQuery = '',
   onSearchSubmit,
@@ -45,6 +57,11 @@ export function MarketplaceHeader({
   const activeHash = useRouterState({
     select: (state) => state.location.hash.replace(/^#/, ''),
   })
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  const isHomePage = pathname === '/'
+  const isMarketplacePage = isMarketplaceFlow(pathname)
   const query =
     queryDraft.source === defaultQuery ? queryDraft.value : defaultQuery
 
@@ -90,9 +107,14 @@ export function MarketplaceHeader({
         >
           {navigation.map((item) => {
             const isHome = item.anchor === discoveryCopy.nav.anchors.home
+            const isMarketplace =
+              item.anchor === discoveryCopy.nav.anchors.marketplace
             const isActive = isHome
-              ? activeHash === ''
-              : activeHash === item.anchor
+              ? isHomePage && activeHash === ''
+              : isMarketplace
+                ? isMarketplacePage ||
+                  (isHomePage && activeHash === item.anchor)
+                : isHomePage && activeHash === item.anchor
 
             return (
               <Link
@@ -101,6 +123,7 @@ export function MarketplaceHeader({
                 hash={isHome ? undefined : item.anchor}
                 search={homeSearch}
                 activeOptions={{ includeHash: true, includeSearch: false }}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'shrink-0 border-b-2 pb-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                   isActive

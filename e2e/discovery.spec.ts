@@ -69,7 +69,9 @@ test('detail renders API data and disables purchase for a sold-out edition', asy
   ).toBeVisible()
   await expect(page.getByRole('button', { name: 'Esgotado' })).toBeDisabled()
   await expect(page.getByText('ID do token')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Atributos' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Detalhes do NFT' }),
+  ).toBeVisible()
 })
 
 test('detail displays the not-found state for an unknown NFT ID', async ({

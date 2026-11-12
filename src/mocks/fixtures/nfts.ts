@@ -22,7 +22,8 @@ const baseNftFixtures = [
       { traitType: 'Raridade', value: 'Raro' },
     ],
     isRare: true,
-    description: 'Um colecionável digital da coleção Kurio Apes.',
+    description:
+      'Um colecionável digital finalizado à mão da coleção Kurio Editions, verificado na Ethereum, com arte desbloqueável e acesso para colecionadores.',
   },
   {
     id: 'sage-nomad-089',
@@ -355,12 +356,15 @@ const ratings = [
 
 export const nftFixtures = nftListSchema.parse(
   baseNftFixtures.map((nft, index) => {
-    const image = apeImages[index % apeImages.length]
+    const imageIndex = index % apeImages.length
+    const image = apeImages[imageIndex]
 
     return {
       ...nft,
       image,
-      images: [image],
+      images: apeImages.map(
+        (_, offset) => apeImages[(imageIndex + offset) % apeImages.length],
+      ),
       rating: ratings[index] ?? 4.5,
       reviewCount: 12 + index * 4,
       createdAt: new Date(Date.UTC(2026, 10, 11 - index)).toISOString(),

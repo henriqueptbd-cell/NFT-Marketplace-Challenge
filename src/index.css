@@ -15,7 +15,7 @@
   /* Layout — largura útil e goteira lateral da página.
      Alterar estes dois valores reposiciona header, home, catálogo,
      carrinho, checkout e perfil de uma vez (classe `.page-shell`). */
-  --layout-max-width: 75rem;
+  --layout-max-width: 80rem;
   --layout-gutter: 1rem;
 
   color-scheme: dark;

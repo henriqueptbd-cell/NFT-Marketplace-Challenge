@@ -25,7 +25,7 @@ async function signIn(page: Page): Promise<void> {
 
 async function addEmeraldApe(page: Page): Promise<void> {
   await openRoute(page, '/nft/emerald-ape-042')
-  await page.getByRole('button', { name: 'Comprar NFT' }).click()
+  await page.getByRole('button', { name: 'Comprar', exact: true }).click()
   await expect(page.getByText('NFT adicionado ao carrinho.')).toBeVisible()
 }
 
