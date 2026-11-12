@@ -242,6 +242,8 @@ export function CheckoutPage() {
     if (socket.connected) onConnect()
 
     return () => {
+      if (activeOrderId && socket.connected)
+        socket.emit('order.unsubscribe', activeOrderId)
       socket.off('connect', onConnect)
       socket.off('nft.updated', onNftUpdated)
       socket.off('order.updated', onOrderUpdated)

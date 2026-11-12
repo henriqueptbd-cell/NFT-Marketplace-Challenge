@@ -103,7 +103,7 @@ Perfil PATCH é strict; `ens` e `avatar` aceitam null. A carteira aceita tipos `
 
 ## Realtime e lacunas de backend
 
-Há canal Socket.IO tipado separadamente em [`src/api/realtime.ts`](../src/api/realtime.ts), não é endpoint REST: clientes emitem `nft.subscribe(nftId)` e `order.subscribe(orderId)` e recebem `nft.updated`/`order.updated` com `{id,version,data}`. A URL usa `VITE_SOCKET_URL` ou origem atual, path `/socket.io`, transporte WebSocket. O handler demo dá resposta inicial de assinatura e eventos de atualização; autenticação/autorização do socket não aparece no contrato observado.
+Há canal Socket.IO tipado separadamente em [`src/api/realtime.ts`](../src/api/realtime.ts), não é endpoint REST: clientes emitem `nft.subscribe(nftId)` e `order.subscribe(orderId)` e recebem `nft.updated`/`order.updated` com `{id,version,data}`. Para pedidos, o mock valida o cookie de sessão simulado e só autoriza o dono; conexões sem sessão, sem assinatura ou pertencentes a outra conta não recebem snapshot nem atualizações. `order.unsubscribe(orderId)` remove a assinatura, e fechar a conexão limpa as inscrições. A URL usa `VITE_SOCKET_URL` ou origem atual, path `/socket.io`, transporte WebSocket. No backend real, autentique o handshake e verifique a titularidade no servidor — nunca confie em `userId` enviado pelo cliente.
 
 **Hoje (MSW/demo):** respostas, estado, cenários de falha e efeitos colaterais acima estão em [`src/mocks/handlers`](../src/mocks/handlers/index.ts). O mock fornece validação e exemplos executáveis, mas inclui estado em memória, cenários artificiais e integrações simuladas.
 

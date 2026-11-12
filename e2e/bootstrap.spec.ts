@@ -84,7 +84,11 @@ async function login(page: Page, email = 'user@kurio.io'): Promise<void> {
   expect(restored.status).toBe(200)
 }
 
-async function createPendingOrder(page: Page, key: string) {
+async function createPendingOrder(
+  page: Page,
+  key: string,
+  walletId = 'wallet-user-ethereum',
+) {
   const cart = await apiRequest(page, '/api/cart/items', {
     method: 'POST',
     body: { nftId: 'emerald-ape-042', quantity: 1 },
@@ -93,7 +97,7 @@ async function createPendingOrder(page: Page, key: string) {
 
   const quote = await apiRequest(page, '/api/quote', {
     method: 'POST',
-    body: { walletId: 'wallet-user-ethereum' },
+    body: { walletId },
   })
   expect(quote.status).toBe(201)
   const quoteBody = asObject(quote.body)
@@ -101,7 +105,7 @@ async function createPendingOrder(page: Page, key: string) {
   const order = await apiRequest(page, '/api/orders', {
     method: 'POST',
     idempotencyKey: key,
-    body: { quoteId: quoteBody.id, walletId: 'wallet-user-ethereum' },
+    body: { quoteId: quoteBody.id, walletId },
   })
   expect(order.status).toBe(201)
   return asObject(order.body)
@@ -504,4 +508,144 @@ test('delivers versioned Socket.IO updates out of order when requested', async (
     return events.map((event) => event.version)
   })
   expect(versions[0]).toBeGreaterThan(versions[1] ?? Number.POSITIVE_INFINITY)
+})
+
+test('restricts order socket updates to the authenticated owner subscription', async ({
+  page,
+}) => {
+  await openApp(page)
+  await login(page)
+  const ownerOrder = await createPendingOrder(page, 'socket-owner-order')
+  await login(page, 'collector@kurio.io')
+  const otherUserOrder = await createPendingOrder(
+    page,
+    'socket-other-user-order',
+    'wallet-collector-polygon',
+  )
+  await login(page)
+
+  const ownerOrderId = String(ownerOrder.id)
+  const otherUserOrderId = String(otherUserOrder.id)
+  await page.evaluate(
+    ({ ownerOrderId, otherUserOrderId }) => {
+      type CapturedOrderEvent = {
+        id: string
+        data: { status: string; userId: string }
+      }
+      const socketWindow = window as unknown as {
+        __kurioOrderEvents: Record<string, CapturedOrderEvent[]>
+        __kurioOrderSockets: WebSocket[]
+      }
+      const events: Record<string, CapturedOrderEvent[]> = {
+        owner: [],
+        foreign: [],
+        idle: [],
+      }
+      const subscriptions = [
+        ['owner', ownerOrderId],
+        ['foreign', otherUserOrderId],
+        ['idle', null],
+      ] as const
+      const socketUrl = new URL(
+        '/socket.io/?EIO=4&transport=websocket',
+        window.location.href,
+      )
+      socketUrl.protocol =
+        window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      socketWindow.__kurioOrderEvents = events
+      socketWindow.__kurioOrderSockets = subscriptions.map(
+        ([label, orderId]) => {
+          const socket = new WebSocket(socketUrl)
+          socket.addEventListener('message', (message) => {
+            if (
+              typeof message.data !== 'string' ||
+              !message.data.startsWith('42')
+            )
+              return
+            const [eventName, payload] = JSON.parse(message.data.slice(2)) as [
+              string,
+              CapturedOrderEvent,
+            ]
+            if (eventName === 'order.updated') events[label]?.push(payload)
+          })
+          socket.addEventListener('open', () => {
+            if (orderId) {
+              socket.send(`42${JSON.stringify(['order.subscribe', orderId])}`)
+            }
+          })
+          return socket
+        },
+      )
+    },
+    { ownerOrderId, otherUserOrderId },
+  )
+
+  await page.waitForFunction(
+    () =>
+      (
+        window as unknown as {
+          __kurioOrderEvents?: Record<
+            string,
+            Array<{ data: { status: string } }>
+          >
+        }
+      ).__kurioOrderEvents?.owner?.some(
+        (event) => event.data.status === 'pending',
+      ),
+    undefined,
+    { timeout: 10_000 },
+  )
+  await page.waitForTimeout(100)
+  const initialEvents = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          __kurioOrderEvents: Record<string, unknown[]>
+        }
+      ).__kurioOrderEvents,
+  )
+  expect(initialEvents.owner).toHaveLength(1)
+  expect(initialEvents.foreign).toEqual([])
+  expect(initialEvents.idle).toEqual([])
+
+  const confirmation = await apiRequest(
+    page,
+    `/api/orders/${ownerOrderId}/confirm`,
+    { method: 'POST' },
+  )
+  expect(confirmation.status).toBe(200)
+  expect(asObject(confirmation.body).status).toBe('confirmed')
+  await page.waitForFunction(
+    () =>
+      (
+        window as unknown as {
+          __kurioOrderEvents?: Record<
+            string,
+            Array<{ data: { status: string } }>
+          >
+        }
+      ).__kurioOrderEvents?.owner?.some(
+        (event) => event.data.status === 'confirmed',
+      ),
+    undefined,
+    { timeout: 10_000 },
+  )
+
+  const finalEvents = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          __kurioOrderEvents: Record<
+            string,
+            Array<{ data: { status: string } }>
+          >
+        }
+      ).__kurioOrderEvents,
+  )
+  expect(finalEvents.owner.map((event) => event.data.status)).toEqual([
+    'pending',
+    'confirmed',
+  ])
+  expect(finalEvents.foreign).toEqual([])
+  expect(finalEvents.idle).toEqual([])
 })

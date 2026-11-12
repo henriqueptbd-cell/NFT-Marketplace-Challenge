@@ -49,6 +49,10 @@ export async function readAuthenticatedUser(
   request: Request,
 ): Promise<User | null> {
   if (consumeMockScenario('session-expired')) return null
+  return readSessionUser(request)
+}
+
+export async function readSessionUser(request: Request): Promise<User | null> {
   const credential = readSessionCredential(request)
   if (!credential) return null
   const credentialHash = await hashSessionCredential(credential)

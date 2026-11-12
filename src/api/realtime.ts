@@ -15,6 +15,7 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   'nft.subscribe': (nftId: string) => void
   'order.subscribe': (orderId: string) => void
+  'order.unsubscribe': (orderId: string) => void
 }
 
 let realtimeClient:

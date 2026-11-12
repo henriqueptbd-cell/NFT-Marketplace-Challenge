@@ -146,14 +146,15 @@ Ative no console do browser com `window.__mswScenario('nome')`; nomes são valid
 
 O cliente usa `socket.io-client` em `/socket.io/`; o worker MSW integra-se com `@mswjs/socket.io-binding`. Eventos:
 
-| Evento            | Direção        | Payload                                              |
-| ----------------- | -------------- | ---------------------------------------------------- |
-| `nft.subscribe`   | cliente → mock | `nftId: string`; solicita inscrição em um NFT        |
-| `order.subscribe` | cliente → mock | `orderId: string`; solicita inscrição em um pedido   |
-| `nft.updated`     | mock → cliente | `{ "id": string, "version": number, "data": NFT }`   |
-| `order.updated`   | mock → cliente | `{ "id": string, "version": number, "data": Order }` |
+| Evento              | Direção        | Payload                                                  |
+| ------------------- | -------------- | -------------------------------------------------------- |
+| `nft.subscribe`     | cliente → mock | `nftId: string`; solicita inscrição em um NFT            |
+| `order.subscribe`   | cliente → mock | `orderId: string`; exige sessão e titularidade do pedido |
+| `order.unsubscribe` | cliente → mock | `orderId: string`; encerra a inscrição no pedido         |
+| `nft.updated`       | mock → cliente | `{ "id": string, "version": number, "data": NFT }`       |
+| `order.updated`     | mock → cliente | `{ "id": string, "version": number, "data": Order }`     |
 
-A versão é incremental; `data` contém o snapshot tipado mais recente. Clientes devem ignorar versão igual/mais antiga. O checkout aplica mudanças recentes no cache e invalida carrinho/cotação; ao reconectar, revalida as queries ativas.
+A versão é incremental; `data` contém o snapshot tipado mais recente. Clientes devem ignorar versão igual/mais antiga. O mock envia `order.updated` somente a conexões autenticadas que se inscreveram no pedido pertencente à conta da sessão; inscrição ausente, sessão inválida ou pedido de outra conta não recebe snapshot. O checkout envia `order.unsubscribe` ao encerrar a tela, e o mock libera as inscrições quando a conexão fecha. O checkout aplica mudanças recentes no cache e invalida carrinho/cotação; ao reconectar, revalida as queries ativas.
 
 ## Estrutura
 
