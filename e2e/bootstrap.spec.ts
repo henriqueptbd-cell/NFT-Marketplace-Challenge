@@ -245,6 +245,75 @@ test('supports authenticated resource endpoints and idempotent order creation', 
   ).toHaveLength(0)
 })
 
+test('confirmation removes only the quantities captured by the order snapshot', async ({
+  page,
+}) => {
+  await openApp(page)
+  await login(page)
+
+  for (const nftId of ['emerald-ape-042', 'sage-nomad-089']) {
+    const added = await apiRequest(page, '/api/cart/items', {
+      method: 'POST',
+      body: { nftId, quantity: 1 },
+    })
+    expect(added.status).toBe(201)
+  }
+
+  const quote = await apiRequest(page, '/api/quote', {
+    method: 'POST',
+    body: { walletId: 'wallet-user-ethereum' },
+  })
+  expect(quote.status).toBe(201)
+  const quoteId = String(asObject(quote.body).id)
+  const createdOrder = await apiRequest(page, '/api/orders', {
+    method: 'POST',
+    idempotencyKey: 'e2e-partial-cart-order',
+    body: { quoteId, walletId: 'wallet-user-ethereum' },
+  })
+  expect(createdOrder.status).toBe(201)
+  const order = asObject(createdOrder.body)
+  const snapshotItems = asObject(order.snapshot).items as Array<{
+    nftId: string
+    quantity: number
+  }>
+  expect(snapshotItems).toEqual([
+    expect.objectContaining({ nftId: 'emerald-ape-042', quantity: 1 }),
+    expect.objectContaining({ nftId: 'sage-nomad-089', quantity: 1 }),
+  ])
+
+  const increasedEmerald = await apiRequest(page, '/api/cart/items', {
+    method: 'POST',
+    body: { nftId: 'emerald-ape-042', quantity: 2 },
+  })
+  expect(increasedEmerald.status).toBe(201)
+  const increasedSage = await apiRequest(
+    page,
+    '/api/cart/items/sage-nomad-089',
+    { method: 'PATCH', body: { quantity: 2 } },
+  )
+  expect(increasedSage.status).toBe(200)
+  const addedAfterOrder = await apiRequest(page, '/api/cart/items', {
+    method: 'POST',
+    body: { nftId: 'cosmic-bloom-118', quantity: 1 },
+  })
+  expect(addedAfterOrder.status).toBe(201)
+
+  const confirmation = await apiRequest(
+    page,
+    `/api/orders/${String(order.id)}/confirm`,
+    { method: 'POST' },
+  )
+  expect(confirmation.status).toBe(200)
+  expect(asObject(confirmation.body).status).toBe('confirmed')
+
+  const remainingCart = asObject((await apiRequest(page, '/api/cart', {})).body)
+  expect(remainingCart.items).toEqual([
+    { nftId: 'emerald-ape-042', quantity: 2, priceString: '1.19' },
+    { nftId: 'sage-nomad-089', quantity: 1, priceString: '0.32' },
+    { nftId: 'cosmic-bloom-118', quantity: 1, priceString: '0.88' },
+  ])
+})
+
 test('returns consistent error shapes and activates global scenarios', async ({
   page,
 }) => {

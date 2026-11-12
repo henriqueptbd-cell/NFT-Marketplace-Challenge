@@ -220,6 +220,14 @@ export const orderHandlers = [
       const target = draft.orders.find((item) => item.id === orderId)
       if (target) Object.assign(target, updatedOrder)
       if (!declined) {
+        const purchasedQuantities = new Map<string, number>()
+        for (const orderItem of updatedOrder.snapshot.items) {
+          purchasedQuantities.set(
+            orderItem.nftId,
+            (purchasedQuantities.get(orderItem.nftId) ?? 0) +
+              orderItem.quantity,
+          )
+        }
         for (const orderItem of updatedOrder.snapshot.items) {
           const nft = draft.nfts.find((item) => item.id === orderItem.nftId)
           if (nft && !nft.edition.isOpen) {
@@ -231,8 +239,23 @@ export const orderHandlers = [
         }
         const cart = draft.carts.find((item) => item.userId === user.id)
         if (cart) {
-          cart.items = []
-          cart.couponCode = null
+          cart.items = cart.items.flatMap((cartItem) => {
+            const quantityToRemove =
+              purchasedQuantities.get(cartItem.nftId) ?? 0
+            const removedQuantity = Math.min(
+              cartItem.quantity,
+              quantityToRemove,
+            )
+            purchasedQuantities.set(
+              cartItem.nftId,
+              quantityToRemove - removedQuantity,
+            )
+            const remainingQuantity = cartItem.quantity - removedQuantity
+            return remainingQuantity > 0
+              ? [{ ...cartItem, quantity: remainingQuantity }]
+              : []
+          })
+          if (cart.items.length === 0) cart.couponCode = null
           cart.updatedAt = nowIso()
           cart.version += 1
         }
