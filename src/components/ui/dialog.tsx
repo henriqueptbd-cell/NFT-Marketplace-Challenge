@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 
@@ -23,11 +23,29 @@ export function Dialog({
   children,
   className,
 }: DialogProps) {
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out fixed inset-0 z-50 bg-background/80" />
         <DialogPrimitive.Content
+          onOpenAutoFocus={() => {
+            const activeElement = document.activeElement
+            returnFocusRef.current =
+              activeElement instanceof HTMLElement &&
+              activeElement !== document.body
+                ? activeElement
+                : null
+          }}
+          onCloseAutoFocus={(event) => {
+            const returnFocusTarget = returnFocusRef.current
+            returnFocusRef.current = null
+            if (returnFocusTarget?.isConnected) {
+              event.preventDefault()
+              returnFocusTarget.focus()
+            }
+          }}
           className={cn(
             'fixed left-1/2 top-1/2 z-50 grid max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-card border border-border bg-surface p-6 text-text-primary shadow-lg focus:outline-none',
             className,

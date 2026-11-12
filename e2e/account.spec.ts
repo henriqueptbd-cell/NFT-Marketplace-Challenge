@@ -327,11 +327,14 @@ test('401 por sessão expirada abre o card de login sobre a rota atual', async (
   await expect(page.getByText('Sua sessão expirou')).toBeVisible()
 })
 
-test('card de autenticação sobrepõe a rota, alterna abas e fecha com Esc', async ({
+test('card de autenticação alterna abas, contém o foco e fecha com Esc', async ({
   page,
 }) => {
   await openRoute(page, '/')
-  await page.locator('header').getByRole('button', { name: 'Entrar' }).click()
+  const loginTrigger = page
+    .locator('header')
+    .getByRole('button', { name: 'Entrar' })
+  await loginTrigger.click()
 
   const dialog = authDialog(page)
   await expect(dialog).toBeVisible()
@@ -350,8 +353,18 @@ test('card de autenticação sobrepõe a rota, alterna abas e fecha com Esc', as
   await dialog.getByRole('tab', { name: 'Entrar', exact: true }).click()
   await expect(page.locator('#login-email')).toBeVisible()
 
+  for (const key of ['Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab']) {
+    await page.keyboard.press(key)
+    expect(
+      await dialog.evaluate((element) =>
+        element.contains(document.activeElement),
+      ),
+    ).toBe(true)
+  }
+
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
+  await expect(loginTrigger).toBeFocused()
 })
 
 test('login social autentica com o provedor mockado', async ({ page }) => {
