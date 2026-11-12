@@ -29,6 +29,12 @@ export {
   type NFTSort,
 } from '@/api/types/nft'
 export {
+  newsletterRequestSchema,
+  newsletterSubscriptionSchema,
+  type NewsletterRequest,
+  type NewsletterSubscription,
+} from '@/api/types/newsletter'
+export {
   orderSchema,
   orderSnapshotItemSchema,
   orderSnapshotSchema,

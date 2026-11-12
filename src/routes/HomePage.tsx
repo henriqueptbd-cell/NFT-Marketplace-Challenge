@@ -4,13 +4,15 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { SlidersHorizontal } from 'lucide-react'
 import { getNfts } from '@/api/endpoints'
 import { nftSortSchema, type NFTSort } from '@/api/types/nft'
+import { BenefitsPanel } from '@/components/domain/BenefitsPanel'
+import { BlogCard } from '@/components/domain/BlogCard'
 import { EmptyState } from '@/components/domain/EmptyState'
 import { LoadingGrid } from '@/components/domain/LoadingGrid'
 import { MarketplaceFilters } from '@/components/domain/MarketplaceFilters'
 import { MarketplaceHeader } from '@/components/domain/MarketplaceHeader'
 import { NFTCard } from '@/components/domain/NFTCard'
 import { NFTImage } from '@/components/domain/NFTImage'
-import { PriceDisplay } from '@/components/domain/PriceDisplay'
+import { PromoBanner } from '@/components/domain/PromoBanner'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { ErrorState } from '@/components/domain/ErrorState'
@@ -166,16 +168,16 @@ export function HomePage() {
         defaultQuery={search.q}
         onSearchSubmit={(query) => updateSearch({ q: query || undefined })}
       />
-      <main className="mx-auto max-w-screen-2xl px-4 pb-16 sm:px-6 lg:px-8">
+      <main className="page-shell pb-16">
         <section
           id={discoveryCopy.nav.anchors.learn}
-          className="relative my-6 grid min-h-[20rem] scroll-mt-28 items-center gap-8 overflow-hidden rounded-card border border-border bg-gradient-to-br from-surface via-background to-elevated p-6 sm:my-10 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.72fr)] lg:p-14"
+          className="relative my-6 grid scroll-mt-28 items-center gap-8 overflow-hidden sm:my-10 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.72fr)] lg:gap-14"
         >
-          <div className="relative z-10 grid content-center justify-items-start gap-5">
-            <p className="text-xs font-semibold tracking-[0.18em] text-primary">
+          <div className="relative z-10 flex flex-col items-start gap-5">
+            <p className="text-sm font-semibold text-primary">
               {discoveryCopy.hero.eyebrow}
             </p>
-            <h1 className="max-w-3xl font-display text-4xl font-bold leading-tight text-text-primary sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-3xl font-display text-5xl font-bold leading-tight text-text-primary sm:text-6xl lg:text-7xl">
               {discoveryCopy.hero.title}
             </h1>
             <p className="max-w-2xl text-sm leading-7 text-text-secondary sm:text-base">
@@ -188,21 +190,21 @@ export function HomePage() {
               onClick={(event) =>
                 onSectionClick(event, discoveryCopy.nav.anchors.marketplace)
               }
-              className="inline-flex min-h-11 items-center justify-center rounded-button bg-primary px-5 text-sm font-semibold text-on-primary transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex min-h-11 items-center justify-center rounded-button bg-primary px-8 text-sm font-semibold text-on-primary transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               {discoveryCopy.hero.cta}
             </Link>
           </div>
           <div
             id={discoveryCopy.nav.anchors.creators}
-            className="relative mx-auto w-full max-w-sm scroll-mt-28"
+            className="relative mx-auto w-full scroll-mt-28"
           >
             {featuredNft ? (
               <Link
                 to="/nft/$id"
                 params={{ id: featuredNft.id }}
                 aria-label={featuredNft.name}
-                className="group block overflow-hidden rounded-card border border-border bg-background/80 p-3 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="group block overflow-hidden rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <NFTImage
                   src={featuredNft.image}
@@ -212,27 +214,13 @@ export function HomePage() {
                   aspectRatio="square"
                   priority
                 />
-                <div className="grid gap-1 p-3">
-                  <p className="text-xs uppercase tracking-wide text-text-secondary">
-                    {discoveryCopy.hero.featured}
-                  </p>
-                  <h2 className="font-display text-xl font-bold">
-                    {featuredNft.name}
-                  </h2>
-                  <p className="text-xs text-text-secondary">
-                    {featuredNft.collection}
-                  </p>
-                  <PriceDisplay price={featuredNft.priceString} />
-                </div>
               </Link>
             ) : (
-              <div className="rounded-card border border-border bg-background/80 p-3">
-                <LoadingGrid
-                  count={1}
-                  label={discoveryCopy.hero.featuredLoading}
-                  className="[&>div]:grid-cols-1"
-                />
-              </div>
+              <LoadingGrid
+                count={1}
+                label={discoveryCopy.hero.featuredLoading}
+                className="[&>div]:grid-cols-1"
+              />
             )}
           </div>
         </section>
@@ -392,6 +380,39 @@ export function HomePage() {
             </Tabs>
           </div>
         </section>
+
+        <section
+          aria-label={discoveryCopy.banners.label}
+          className="mt-16 grid gap-5 lg:grid-cols-2"
+        >
+          {discoveryCopy.banners.items.map((banner) => (
+            <PromoBanner
+              key={banner.id}
+              title={banner.title}
+              description={banner.description}
+              image={banner.image}
+              imageAlt={banner.imageAlt}
+            />
+          ))}
+        </section>
+
+        <section aria-label={discoveryCopy.blog.label} className="mt-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold text-text-primary sm:text-4xl">
+              {discoveryCopy.blog.title}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base">
+              {discoveryCopy.blog.description}
+            </p>
+          </div>
+          <div className="mt-10 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {discoveryCopy.blog.posts.map((post) => (
+              <BlogCard key={post.id} post={post} />
+            ))}
+          </div>
+        </section>
+
+        <BenefitsPanel className="mt-16" />
       </main>
     </div>
   )

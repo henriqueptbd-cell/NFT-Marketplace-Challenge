@@ -3,6 +3,7 @@ import { applyGlobalScenario } from '@/mocks/handlers/common'
 import { authHandlers } from '@/mocks/handlers/auth'
 import { cartHandlers } from '@/mocks/handlers/cart'
 import { favoriteHandlers } from '@/mocks/handlers/favorites'
+import { newsletterHandlers } from '@/mocks/handlers/newsletter'
 import { nftHandlers } from '@/mocks/handlers/nfts'
 import { orderHandlers } from '@/mocks/handlers/orders'
 import { profileHandlers } from '@/mocks/handlers/profile'
@@ -16,6 +17,7 @@ export const handlers = [
   scenarioHandler,
   ...authHandlers,
   ...nftHandlers,
+  ...newsletterHandlers,
   ...favoriteHandlers,
   ...cartHandlers,
   ...quoteHandlers,

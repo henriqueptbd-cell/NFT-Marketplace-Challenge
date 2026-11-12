@@ -26,13 +26,192 @@ export const discoveryCopy = {
     login: 'Entrar',
   },
   hero: {
-    eyebrow: 'MARKETPLACE DE COLECIONÁVEIS DIGITAIS',
-    title: 'Descubra peças digitais extraordinárias.',
+    eyebrow: 'Bem-vindo à Kurio',
+    title: 'SEJA DONO DO FUTURO DA ARTE DIGITAL',
     description:
-      'Explore coleções independentes, encontre sua próxima peça favorita e acompanhe cada edição em um só lugar.',
-    cta: 'Explorar marketplace',
+      'Descubra NFTs selecionados de criadores emergentes e consagrados. Colecione arte digital rara, apoie artistas e tenha uma parte da cultura da internet.',
+    cta: 'EXPLORAR',
     featured: 'Em destaque',
     featuredLoading: 'Carregando destaque',
+  },
+  banners: {
+    label: 'Destaques da coleção',
+    cta: 'Explorar',
+    items: [
+      {
+        id: 'genesis',
+        title: 'Lançamentos gênesis de edição limitada',
+        description:
+          'Colecione edições escassas diretamente dos criadores antes da revelação pública.',
+        image: '/nfts/emerald-ape-042.webp',
+        imageAlt: 'Macaco de óculos verdes, arte da coleção Kurio Apes',
+      },
+      {
+        id: 'curated',
+        title: 'Arte digital selecionada e muito mais',
+        description:
+          'Explore novos artistas, coleções verificadas e obras digitais que definem a nova era.',
+        image: '/nfts/obsidian-crown-301.webp',
+        imageAlt: 'Coroa obsidiana, arte da coleção Kurio Apes',
+      },
+    ],
+  },
+  blog: {
+    label: 'Diário da Cunhagem',
+    title: 'Diário da Cunhagem',
+    description:
+      'Histórias, guias e insights para colecionadores sobre o universo da propriedade digital.',
+    readMore: 'Ler mais',
+    posts: [
+      {
+        id: 'nft-ownership',
+        meta: '12 de setembro | Leitura de 5 min',
+        title: 'Como funciona a propriedade de NFTs',
+        excerpt: 'Aprenda a colecionar, negociar e verificar ativos digitais.',
+        image: '/nfts/emerald-ape-042.webp',
+        imageAlt: 'Macaco de óculos verdes, arte da coleção Kurio Apes',
+      },
+      {
+        id: 'artists-to-follow',
+        meta: '12 de setembro | Leitura de 2 min',
+        title: '10 artistas digitais para acompanhar',
+        excerpt: 'Conheça criadores que moldam a cultura digital.',
+        image: '/nfts/sage-nomad-089.webp',
+        imageAlt: 'Nômade de manto verde, arte da coleção Kurio Origins',
+      },
+      {
+        id: 'rarity-and-provenance',
+        meta: '15 de setembro | Leitura de 3 min',
+        title: 'Raridade, atributos e procedência',
+        excerpt:
+          'Entenda raridade, procedência, direitos autorais e utilidade.',
+        image: '/nfts/neon-vessel-552.webp',
+        imageAlt: 'Embarcação neon, arte da coleção Kurio Society',
+      },
+      {
+        id: 'wallet-safety',
+        meta: '19 de setembro | Leitura de 2 min',
+        title: 'Como proteger sua carteira',
+        excerpt: 'Proteja sua carteira, seus ativos e sua identidade.',
+        image: '/nfts/cosmic-bloom-118.webp',
+        imageAlt: 'Flor cósmica, arte da coleção Kurio Signals',
+      },
+    ],
+  },
+  benefits: {
+    label: 'Vantagens da plataforma',
+    items: [
+      {
+        id: 'wallet',
+        icon: 'shield',
+        title: 'Segurança da carteira',
+        description:
+          'Proteja sua carteira e colecione arte digital verificada com confiança.',
+      },
+      {
+        id: 'creators',
+        icon: 'palette',
+        title: 'Criadores em destaque',
+        description:
+          'Conheça artistas, estúdios e comunidades que moldam a cultura digital na rede.',
+      },
+      {
+        id: 'drops',
+        icon: 'bell',
+        title: 'Alertas de lançamentos',
+        description:
+          'Receba calendários de cunhagem, novidades de listas de acesso e análises do mercado.',
+      },
+    ],
+  },
+  newsletter: {
+    title: 'Antecipe-se ao próximo lançamento',
+    description:
+      'Receba lançamentos selecionados, histórias de criadores e novidades do mercado.',
+    label: 'E-mail para receber novidades da Kurio',
+    placeholder: 'digite seu e-mail...',
+    submit: 'Enviar',
+    submitting: 'Enviando',
+    invalid: 'Informe um e-mail válido.',
+    success: 'Inscrição confirmada. Em breve você receberá as novidades.',
+    error: 'Não foi possível concluir a inscrição. Tente novamente.',
+  },
+  footer: {
+    label: 'Rodapé',
+    tagline: 'Feito para colecionadores, criadores e cultura',
+    email: 'contato@email.com',
+    phone: '+55 11 4002 8922',
+    socialLabel: 'Redes sociais',
+    walletsLabel: 'Carteiras compatíveis',
+    copyright: '© 2026 Kurio. Propriedade digital para todos.',
+    columns: [
+      {
+        id: 'profile',
+        title: 'Meu perfil',
+        links: [
+          { label: 'Meu perfil', to: '/profile', section: null },
+          { label: 'Minha coleção', to: null, section: null },
+          { label: 'Atividade', to: null, section: null },
+          { label: 'Estúdio do criador', to: null, section: null },
+          { label: 'Lista de interesse', to: null, section: null },
+        ],
+      },
+      {
+        id: 'help',
+        title: 'Central de ajuda',
+        links: [
+          { label: 'Central de ajuda', to: '/', section: 'learn' },
+          { label: 'Como comprar NFTs', to: '/', section: 'learn' },
+          { label: 'Carteira e segurança', to: '/wallets', section: null },
+          { label: 'Política do mercado', to: null, section: null },
+          { label: 'Denunciar item', to: null, section: null },
+        ],
+      },
+      {
+        id: 'collections',
+        title: 'Coleções',
+        links: [
+          { label: 'Arte digital', to: '/', section: 'marketplace' },
+          { label: 'Fotografia', to: '/', section: 'marketplace' },
+          { label: 'Música', to: '/', section: 'marketplace' },
+          { label: 'Arte 3D', to: '/', section: 'marketplace' },
+          { label: 'Utilidade', to: '/', section: 'marketplace' },
+        ],
+      },
+    ],
+    socials: [
+      {
+        id: 'facebook',
+        label: 'Facebook',
+        short: 'f',
+        href: 'https://www.facebook.com/',
+      },
+      {
+        id: 'instagram',
+        label: 'Instagram',
+        short: 'ig',
+        href: 'https://www.instagram.com/',
+      },
+      {
+        id: 'twitter',
+        label: 'Twitter',
+        short: 'tw',
+        href: 'https://x.com/',
+      },
+      {
+        id: 'linkedin',
+        label: 'LinkedIn',
+        short: 'in',
+        href: 'https://www.linkedin.com/',
+      },
+      {
+        id: 'youtube',
+        label: 'YouTube',
+        short: 'yt',
+        href: 'https://www.youtube.com/',
+      },
+    ],
+    wallets: ['METAMASK', 'WALLETCONNECT', 'COINBASE'],
   },
   catalog: {
     title: 'Explore o marketplace',
