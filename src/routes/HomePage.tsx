@@ -16,6 +16,7 @@ import { PromoBanner } from '@/components/domain/PromoBanner'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { ErrorState } from '@/components/domain/ErrorState'
+import { FeaturedOfferCard } from '@/components/domain/FeaturedOfferCard'
 import { Label } from '@/components/ui/label'
 import { Pagination } from '@/components/ui/pagination'
 import { Select } from '@/components/ui/select'
@@ -230,29 +231,24 @@ export function HomePage() {
           className="grid scroll-mt-28 gap-7 py-6 md:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10"
         >
           <aside className="hidden md:block">
-            <div className="sticky top-32 rounded-card border border-border bg-surface p-5">
-              <MarketplaceFilters idPrefix="desktop" {...filterProps} />
+            <div className="sticky top-32 flex flex-col gap-4">
+              <div className="rounded-card border border-border bg-surface p-5">
+                <MarketplaceFilters idPrefix="desktop" {...filterProps} />
+              </div>
+              <FeaturedOfferCard nft={featuredNft} />
             </div>
           </aside>
 
           <div className="min-w-0">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                  {discoveryCopy.catalog.title}
-                </h2>
-                {nftQuery.data ? (
-                  <p
-                    className="mt-2 text-xs text-text-secondary"
-                    aria-live="polite"
-                  >
-                    {nftList.length === 1
-                      ? discoveryCopy.catalog.resultCountOne
-                      : discoveryCopy.catalog.resultCount(nftList.length)}
-                  </p>
-                ) : null}
-              </div>
-              <div className="hidden w-52 shrink-0 sm:block">
+            {nftQuery.data ? (
+              <p className="sr-only" aria-live="polite">
+                {nftList.length === 1
+                  ? discoveryCopy.catalog.resultCountOne
+                  : discoveryCopy.catalog.resultCount(nftList.length)}
+              </p>
+            ) : null}
+            <div className="mb-5 hidden items-end justify-end gap-4 sm:flex">
+              <div className="w-52 shrink-0">
                 <Label className="sr-only" htmlFor="catalog-sort">
                   {discoveryCopy.sort.label}
                 </Label>

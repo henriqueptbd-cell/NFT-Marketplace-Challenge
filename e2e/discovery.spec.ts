@@ -32,9 +32,7 @@ test('mobile filters update the URL, survive reload, and restore with browser ba
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openApp(page, '/?sort=relevance')
-  await expect(
-    page.getByRole('heading', { name: 'Explore o marketplace' }),
-  ).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Todos os NFTs' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Abrir filtros' }).click()
   const ethereumFilter = page.getByRole('checkbox', { name: /Ethereum/ })
