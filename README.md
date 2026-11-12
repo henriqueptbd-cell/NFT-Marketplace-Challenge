@@ -184,9 +184,10 @@ npm run preview:demo   # servir dist depois de build:demo
 npm run test:e2e       # Playwright
 npm run lighthouse     # build de produção + 5 medições Lighthouse mobile da Home
 npm run lighthouse:site # 5 medições Lighthouse mobile na URL publicada
+npm run lighthouse:site:matrix # Home desktop + detalhe mobile/desktop, 3 medições cada
 ```
 
-O [baseline Lighthouse local](./reports/lighthouse/summary.md) e a [auditoria do site publicado](./reports/lighthouse/site-summary.md) registram LCP, CLS e TBT por execução e suas medianas. Consulte também o [guia de performance](./docs/performance.md). Ambos são testes de laboratório, não medições de usuários reais.
+O [baseline Lighthouse local](./reports/lighthouse/summary.md) e a [auditoria da Home publicada mobile](./reports/lighthouse/site-summary.md) registram LCP, CLS, TBT e medianas dos quatro scores Lighthouse. A matriz pública inclui [Home desktop](./reports/lighthouse/site-home-desktop-summary.md), [detalhe mobile](./reports/lighthouse/site-detail-mobile-summary.md) e [detalhe desktop](./reports/lighthouse/site-detail-desktop-summary.md), com três execuções por combinação. Consulte também o [guia de performance](./docs/performance.md). São medições de laboratório, não dados de usuários reais.
 
 ## Deploy (Vercel)
 

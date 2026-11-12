@@ -1,0 +1,18 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://nft-marketplace-challenge-ten.vercel.app/nft/emerald-ape-042"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "formFactor": "mobile",
+        "chromeFlags": ["--no-sandbox"]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./reports/lighthouse/site-detail-mobile-runs"
+    }
+  }
+}

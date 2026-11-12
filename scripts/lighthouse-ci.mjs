@@ -79,11 +79,23 @@ for (const reportPath of reportPaths) {
     }
     return value
   }
+  const categoryScore = (id) => {
+    const value = report.categories?.[id]?.score
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(
+        `Missing numeric Lighthouse category score: ${id} in ${reportPath}`,
+      )
+    }
+    return value
+  }
   runs.push({
     lcpMs: metric('largest-contentful-paint'),
     cls: metric('cumulative-layout-shift'),
     tbtMs: metric('total-blocking-time'),
-    performanceScore: report.categories?.performance?.score,
+    performanceScore: categoryScore('performance'),
+    accessibilityScore: categoryScore('accessibility'),
+    bestPracticesScore: categoryScore('best-practices'),
+    seoScore: categoryScore('seo'),
     lighthouseVersion: report.lighthouseVersion,
     finalUrl: report.finalUrl,
   })
@@ -101,9 +113,10 @@ const medians = {
   lcpMs: median(runs.map((run) => run.lcpMs)),
   cls: median(runs.map((run) => run.cls)),
   tbtMs: median(runs.map((run) => run.tbtMs)),
-  performanceScore: median(
-    runs.map((run) => run.performanceScore).filter(Number.isFinite),
-  ),
+  performanceScore: median(runs.map((run) => run.performanceScore)),
+  accessibilityScore: median(runs.map((run) => run.accessibilityScore)),
+  bestPracticesScore: median(runs.map((run) => run.bestPracticesScore)),
+  seoScore: median(runs.map((run) => run.seoScore)),
 }
 const lighthouseVersion = runs[0]?.lighthouseVersion ?? 'unknown'
 let commit = 'unavailable'
@@ -119,18 +132,24 @@ try {
 const seconds = (milliseconds) => (milliseconds / 1000).toFixed(2)
 const clsValue = (value) => value.toFixed(3)
 const milliseconds = (value) => value.toFixed(1)
-const score = (value) =>
-  typeof value === 'number' && Number.isFinite(value)
-    ? `${Math.round(value * 100)} / 100`
-    : 'n/a'
+const score = (value) => `${Math.round(value * 100)} / 100`
 const inlineCode = (value) => `\`${value}\``
 const runValues = (key, formatter) =>
   runs.map((run) => formatter(run[key])).join(' | ')
 const reportDirectory = relative(root, rawReportsDirectory)
 const measuredUrl = runs[0]?.finalUrl ?? collectConfig.url?.[0] ?? 'unknown'
+let routePath = '/'
+try {
+  routePath = new URL(measuredUrl).pathname
+} catch {
+  // Use the root label when a malformed URL appears in a report.
+}
+const pageLabel = routePath.startsWith('/nft/') ? 'Detalhe do NFT' : 'Home'
+const formFactor =
+  collectConfig.settings?.formFactor === 'desktop' ? 'desktop' : 'mobile'
 const title = isLocalBundle
-  ? '# Lighthouse — baseline mobile da Home (build local)'
-  : '# Lighthouse — baseline mobile da Home publicada'
+  ? `# Lighthouse — ${pageLabel} ${formFactor} (build local)`
+  : `# Lighthouse — ${pageLabel} ${formFactor} (site publicado)`
 const scope = isLocalBundle
   ? `Medição de laboratório do bundle de produção local em ${inlineCode('dist')}, com o MSW de demonstração habilitado pela configuração de produção.`
   : `Medição de laboratório do site público. URL informada no repositório: ${inlineCode(measuredUrl)}.`
@@ -145,7 +164,7 @@ ${scope} Não é dado de usuário real (RUM/CrUX).
 - Data da coleta: ${new Date().toISOString()}
 - Commit do repositório no momento da coleta: ${commit}
 - Lighthouse: ${lighthouseVersion}
-- Dispositivo: emulação mobile padrão do Lighthouse
+- Dispositivo: emulação ${formFactor} padrão do Lighthouse
 - URL medida: ${inlineCode(measuredUrl)}
 - Repetições: ${runs.length}; a mediana de cada métrica é calculada independentemente
 
@@ -155,6 +174,9 @@ ${scope} Não é dado de usuário real (RUM/CrUX).
 | CLS | ${runValues('cls', clsValue)} | ${clsValue(medians.cls)} |
 | TBT (ms) | ${runValues('tbtMs', milliseconds)} | ${milliseconds(medians.tbtMs)} |
 | Performance score | ${runValues('performanceScore', score)} | ${score(medians.performanceScore)} |
+| Accessibility score | ${runValues('accessibilityScore', score)} | ${score(medians.accessibilityScore)} |
+| Best Practices score | ${runValues('bestPracticesScore', score)} | ${score(medians.bestPracticesScore)} |
+| SEO score | ${runValues('seoScore', score)} | ${score(medians.seoScore)} |
 
 Os relatórios HTML/JSON e o manifesto ficam em ${inlineCode(reportDirectory)}. ${artifactDescription} LCP e CLS são métricas Core Web Vitals; TBT é uma métrica de laboratório usada como proxy de interatividade, não um Core Web Vital. Consulte o [guia de performance](docs/performance.md) para interpretação, limites recomendados e fontes oficiais.
 `

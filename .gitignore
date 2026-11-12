@@ -23,6 +23,7 @@ test-results/
 # Lighthouse raw HTML/JSON reports (summary.md is versioned)
 reports/lighthouse/runs/
 reports/lighthouse/site-runs/
+reports/lighthouse/site-*-runs/
 .lighthouseci/
 
 # Vercel CLI local project metadata
