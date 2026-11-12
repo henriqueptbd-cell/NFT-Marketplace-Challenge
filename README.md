@@ -182,7 +182,7 @@ O projeto é um SPA estático: a Vercel detecta o preset Vite, roda `npm run bui
 
 ### CI/CD
 
-O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda em pull requests para `main`, em pushes para `main` e manualmente. Ele usa Node 24 e npm 10.9.9 (versões declaradas pelo projeto), instala com `npm ci`, valida formatação, TypeScript e lint, executa os testes E2E do Playwright no Chromium e confirma o build de produção usado na Vercel. Em caso de falha, guarda `test-results/` como artefato para diagnóstico.
+O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda em pull requests para `main`, em pushes para `main` e manualmente. Ele usa Ubuntu 24.04, Node 24 e npm 10.9.9 (versões declaradas pelo projeto), instala com `npm ci`, valida formatação, TypeScript e lint, executa os testes E2E do Playwright no Chromium e confirma o build de produção usado na Vercel. Em caso de falha, guarda `test-results/` como artefato para diagnóstico.
 
 O deploy fica a cargo da integração Git da Vercel, evitando duplicar credenciais de deploy no GitHub Actions: com o repositório conectado no projeto Vercel, PRs geram Preview Deployments e pushes para a branch Production (normalmente `main`) geram Production Deployments. Se a integração Git da Vercel ainda não estiver conectada, conecte o repositório nas configurações do projeto Vercel; o workflow de CI não requer secrets.
 
