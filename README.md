@@ -2,6 +2,10 @@
 
 Frontend do marketplace Kurio com React/TypeScript, contratos Zod, cliente Axios, TanStack Query/Router, MSW v2 e eventos Socket.IO simulados. A aplicação cobre descoberta (Home e detalhe), autenticação e configurações da conta, carrinho de visitante/autenticado e checkout com cotação, pedido idempotente e confirmação.
 
+## Documentação
+
+O [índice de `docs/`](./docs/README.md) reúne a [visão geral](./docs/application-overview.md), a [referência da API](./docs/api.md), os handoffs de [identidade/carteiras](./docs/backend-auth-and-wallets.md) e [carrinho/checkout/pagamentos](./docs/backend-commerce-and-payments.md), o guia de [desenvolvimento/testes](./docs/development-and-testing.md) e a [extração visual do Figma](./docs/design-system.md). Os handoffs descrevem o contrato frontend e o trabalho recomendado; o backend e o processamento de pagamento reais ainda não estão implementados neste repositório.
+
 ## Começar
 
 ```bash
