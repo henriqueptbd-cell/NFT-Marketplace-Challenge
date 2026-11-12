@@ -211,6 +211,8 @@ export const discoveryCopy = {
   catalog: {
     resultCount: (count: number) => `${count} NFTs encontrados`,
     resultCountOne: '1 NFT encontrado',
+    resultsFor: (query: string) => `Resultados para “${query}”`,
+    clearSearch: 'Limpar busca',
     featuredOffer: {
       eyebrow: 'NFT em destaque',
       title: 'Oferta limitada',
@@ -218,6 +220,8 @@ export const discoveryCopy = {
     loading: 'Carregando NFTs',
     refetching: 'Atualizando resultados',
     emptyTitle: 'Nenhum NFT encontrado',
+    emptyQueryTitle: (query: string) =>
+      `Nenhum NFT encontrado para “${query}”`,
     emptyDescription:
       'Tente ajustar a busca ou remover alguns filtros para ver outros colecionáveis.',
     errorTitle: 'Não foi possível carregar os NFTs',

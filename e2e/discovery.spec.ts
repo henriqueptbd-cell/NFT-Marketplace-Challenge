@@ -75,6 +75,27 @@ test('catalog pagination loads distinct server pages', async ({ page }) => {
     .not.toEqual(firstPageNames)
 })
 
+test('header search filters the catalog, shows the query, and clears it', async ({
+  page,
+}) => {
+  await openApp(page, '/')
+  await expect(page.getByText('24 NFTs encontrados')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Abrir busca' }).click()
+  const searchInput = page.getByRole('searchbox', { name: 'Buscar NFTs' })
+  await searchInput.fill('ape')
+  await searchInput.press('Enter')
+
+  await expect(page).toHaveURL(/\?q=ape#market$/)
+  await expect(page.getByText('Resultados para “ape”')).toBeVisible()
+  await expect(page.getByText('14 NFTs encontrados')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Limpar busca' }).click()
+  await expect(page).not.toHaveURL(/q=ape/)
+  await expect(page.getByText('Resultados para “ape”')).toHaveCount(0)
+  await expect(page.getByText('24 NFTs encontrados')).toBeVisible()
+})
+
 test('detail renders API data and disables purchase for a sold-out edition', async ({
   page,
 }) => {

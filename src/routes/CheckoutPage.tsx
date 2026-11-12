@@ -43,6 +43,8 @@ import {
 } from '@/lib/checkout-attempt'
 import { openAuthDialog } from '@/lib/auth-dialog'
 import { cartCheckoutCopy as copy } from '@/lib/cart-checkout-copy'
+import { discoveryCopy } from '@/lib/discovery-copy'
+import { stripDefaultSearch } from '@/lib/validation'
 import { addDecimalStrings, multiplyDecimalString } from '@/lib/decimal'
 
 function CheckoutLoading() {
@@ -279,13 +281,14 @@ export function CheckoutPage() {
   function navigateHome(query = '') {
     void navigate({
       to: '/',
-      search: {
+      hash: discoveryCopy.nav.anchors.marketplace,
+      search: stripDefaultSearch({
         q: query || undefined,
         collections: [],
         networks: [],
         sort: 'relevance',
         page: 1,
-      },
+      }),
     })
   }
 

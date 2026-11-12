@@ -27,6 +27,8 @@ import { nftQueryKeys } from '@/hooks/useNfts'
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@/lib/api-errors'
 import { openAuthDialog } from '@/lib/auth-dialog'
 import { cartCheckoutCopy as copy } from '@/lib/cart-checkout-copy'
+import { discoveryCopy } from '@/lib/discovery-copy'
+import { stripDefaultSearch } from '@/lib/validation'
 import { addDecimalStrings, multiplyDecimalString } from '@/lib/decimal'
 
 const couponFormSchema = z.object({
@@ -113,13 +115,14 @@ export function CartPage() {
   function navigateHome(query = '') {
     void navigate({
       to: '/',
-      search: {
+      hash: discoveryCopy.nav.anchors.marketplace,
+      search: stripDefaultSearch({
         q: query || undefined,
         collections: [],
         networks: [],
         sort: 'relevance',
         page: 1,
-      },
+      }),
     })
   }
 

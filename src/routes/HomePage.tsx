@@ -74,6 +74,23 @@ export function HomePage() {
     [navigate],
   )
 
+  const submitSearch = useCallback(
+    (query: string) => {
+      void navigate({
+        search: (previous) =>
+          stripDefaultSearch({
+            ...previous,
+            q: query || undefined,
+            page: 1,
+          }),
+        hash: discoveryCopy.nav.anchors.marketplace,
+        resetScroll: false,
+      })
+      scrollToSection(discoveryCopy.nav.anchors.marketplace)
+    },
+    [navigate],
+  )
+
   const listParams = useMemo(
     () => ({
       query: search.q,
@@ -166,6 +183,10 @@ export function HomePage() {
     })
   }
 
+  function clearSearch() {
+    updateSearch({ q: undefined })
+  }
+
   const filterProps = {
     search,
     collections: collectionOptions,
@@ -178,7 +199,7 @@ export function HomePage() {
     <div className="min-h-screen bg-background text-text-primary">
       <MarketplaceHeader
         defaultQuery={search.q}
-        onSearchSubmit={(query) => updateSearch({ q: query || undefined })}
+        onSearchSubmit={submitSearch}
       />
       <main className="page-shell pb-16">
         <section
@@ -257,6 +278,16 @@ export function HomePage() {
                   ? discoveryCopy.catalog.resultCountOne
                   : discoveryCopy.catalog.resultCount(totalNftCount)}
               </p>
+            ) : null}
+            {search.q ? (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-medium text-text-primary">
+                  {discoveryCopy.catalog.resultsFor(search.q)}
+                </p>
+                <Button variant="ghost" size="sm" onClick={clearSearch}>
+                  {discoveryCopy.catalog.clearSearch}
+                </Button>
+              </div>
             ) : null}
             <div className="mb-5 hidden items-end justify-end gap-4 sm:flex">
               <div className="w-52 shrink-0">
@@ -341,7 +372,11 @@ export function HomePage() {
                   />
                 ) : nftList.length === 0 ? (
                   <EmptyState
-                    title={discoveryCopy.catalog.emptyTitle}
+                    title={
+                      search.q
+                        ? discoveryCopy.catalog.emptyQueryTitle(search.q)
+                        : discoveryCopy.catalog.emptyTitle
+                    }
                     description={discoveryCopy.catalog.emptyDescription}
                     actionLabel={discoveryCopy.filters.clear}
                     onAction={clearFilters}

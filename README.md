@@ -74,7 +74,7 @@ O cliente cria um identificador UUID para carrinho convidado e o envia em `X-Gue
 
 ## Descoberta — Home e detalhe
 
-`/` valida search params com Zod: `q`, `collections[]`, `networks[]`, `priceMin`, `priceMax`, `sort` e `page`. Filtros combináveis, abas, ordenação e paginação atualizam a URL; refresh e histórico do browser restauram o estado. `useQuery` usa `['nfts', params]`, passa `AbortSignal` ao Axios e mantém os resultados anteriores durante refetch. Coleções e redes são derivadas da resposta da API.
+`/` valida search params com Zod: `q`, `collections[]`, `networks[]`, `priceMin`, `priceMax`, `sort` e `page`. Filtros combináveis, abas, ordenação e paginação atualizam a URL; refresh e histórico do browser restauram o estado. Enviar uma busca (`q`) navega para `/#market`, rola até o catálogo e exibe o aviso "Resultados para “termo”" com a ação "Limpar busca", de modo que o resultado fique visível em qualquer página que use o header. `useQuery` usa `['nfts', params]`, passa `AbortSignal` ao Axios e mantém os resultados anteriores durante refetch. Coleções e redes são derivadas da resposta da API.
 
 `/nft/:id` carrega o NFT pelo endpoint de detalhe. A galeria lê `images[]`; avaliações, atributos e edição vêm da API. Favoritar usa mutation otimista com rollback em erro; adicionar ao carrinho aceita visitante e usuário autenticado. Edições esgotadas não podem ser compradas. As abas "Detalhes do NFT" e "Avaliações de colecionadores (N)" ficam em `src/components/ui/tabs.tsx` sobre `@radix-ui/react-tabs`; a contagem `N` vem de `reviewCount` e a nota ao lado das estrelas abre a mesma aba. A lista usa `useNftReviews`, que só busca quando a aba é aberta.
 

@@ -23,6 +23,7 @@ import { useNft, useNfts } from '@/hooks/useNfts'
 import { useSectionNav } from '@/hooks/useSectionNav'
 import { cn } from '@/lib/cn'
 import { discoveryCopy } from '@/lib/discovery-copy'
+import { stripDefaultSearch } from '@/lib/validation'
 
 const shareTargets = [
   {
@@ -162,13 +163,14 @@ export function NFTDetailPage() {
   function handleSearch(query: string) {
     void navigate({
       to: '/',
-      search: {
+      hash: discoveryCopy.nav.anchors.marketplace,
+      search: stripDefaultSearch({
         q: query || undefined,
         collections: [],
         networks: [],
         sort: 'relevance',
         page: 1,
-      },
+      }),
     })
   }
 

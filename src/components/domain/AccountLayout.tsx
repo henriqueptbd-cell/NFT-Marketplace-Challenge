@@ -6,6 +6,8 @@ import { Drawer } from '@/components/ui/drawer'
 import { MarketplaceHeader } from '@/components/domain/MarketplaceHeader'
 import { useLogout } from '@/hooks/useAuth'
 import { accountCopy } from '@/lib/account-copy'
+import { discoveryCopy } from '@/lib/discovery-copy'
+import { stripDefaultSearch } from '@/lib/validation'
 import type { User } from '@/api/types'
 
 export type AccountSection = 'profile' | 'wallets'
@@ -111,13 +113,14 @@ export function AccountLayout({
   function searchMarketplace(query: string) {
     void navigate({
       to: '/',
-      search: {
+      hash: discoveryCopy.nav.anchors.marketplace,
+      search: stripDefaultSearch({
         q: query || undefined,
         collections: [],
         networks: [],
         sort: 'relevance',
         page: 1,
-      },
+      }),
     })
   }
 
