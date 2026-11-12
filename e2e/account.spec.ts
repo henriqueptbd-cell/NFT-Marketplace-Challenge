@@ -107,6 +107,26 @@ test('login redireciona, restaura sessão após refresh e logout remove a sessã
   expect(loggedOutStatus).toBe(401)
 })
 
+test('rotas de perfil e carteiras exigem login e retomam o destino', async ({
+  page,
+}) => {
+  await openRoute(page, '/profile')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(authDialog(page)).toBeVisible()
+
+  await openRoute(page, '/wallets')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(authDialog(page)).toBeVisible()
+  await page.locator('#login-email').fill('user@kurio.io')
+  await page.locator('#login-password').fill('demo1234')
+  await authDialog(page)
+    .getByRole('button', { name: 'Entrar', exact: true })
+    .click()
+
+  await expect(page).toHaveURL(/\/wallets$/)
+  await expect(page.locator('#primary-wallet-network')).toBeVisible()
+})
+
 test('registro liga e-mail duplicado ao campo e-mail', async ({ page }) => {
   await openRoute(page, '/register')
   await expect(authDialog(page)).toBeVisible()

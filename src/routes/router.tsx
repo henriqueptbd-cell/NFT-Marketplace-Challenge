@@ -2,7 +2,10 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  redirect,
 } from '@tanstack/react-router'
+import { readPersistedUser } from '@/api/client'
+import { openAuthDialog } from '@/lib/auth-dialog'
 import { HomePage } from '@/routes/HomePage'
 import { CartPage } from '@/routes/CartPage'
 import { CheckoutPage } from '@/routes/CheckoutPage'
@@ -21,6 +24,12 @@ import {
 const rootRoute = createRootRoute({
   component: RootLayout,
 })
+
+function requireAuthenticatedRoute(location: { href: string }) {
+  if (readPersistedUser()) return
+  openAuthDialog({ mode: 'login', redirect: location.href })
+  throw redirect({ to: '/' })
+}
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -66,12 +75,14 @@ const registerRoute = createRoute({
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
+  beforeLoad: ({ location }) => requireAuthenticatedRoute(location),
   component: ProfilePage,
 })
 
 const walletsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/wallets',
+  beforeLoad: ({ location }) => requireAuthenticatedRoute(location),
   component: WalletsPage,
 })
 
