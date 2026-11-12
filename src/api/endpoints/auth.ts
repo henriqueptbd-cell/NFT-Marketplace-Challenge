@@ -34,6 +34,12 @@ const passwordChangeRequestSchema = z
     newPassword: z.string().min(8),
   })
   .strict()
+const socialLoginRequestSchema = z
+  .object({ provider: z.enum(['google', 'facebook']) })
+  .strict()
+const forgotPasswordRequestSchema = z
+  .object({ email: z.string().email() })
+  .strict()
 
 export interface AuthResponse {
   session: Session
@@ -102,4 +108,21 @@ export async function changePassword(
 ): Promise<void> {
   const payload = passwordChangeRequestSchema.parse(input)
   await apiClient.patch('/auth/password', payload)
+}
+
+export async function socialLogin(
+  input: z.input<typeof socialLoginRequestSchema>,
+): Promise<AuthResponse> {
+  const payload = socialLoginRequestSchema.parse(input)
+  const { data } = await apiClient.post<unknown>('/auth/social', payload)
+  const response = parseAuthResponse(data)
+  persistUser(response.user)
+  return response
+}
+
+export async function requestPasswordReset(
+  input: z.input<typeof forgotPasswordRequestSchema>,
+): Promise<void> {
+  const payload = forgotPasswordRequestSchema.parse(input)
+  await apiClient.post('/auth/forgot-password', payload)
 }

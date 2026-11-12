@@ -13,7 +13,7 @@ async function waitForApp(page: Page) {
 }
 
 async function openApp(page: Page, path: string) {
-  await page.goto('/login')
+  await page.goto('/')
   await waitForApp(page)
   await page.goto(path)
   await waitForApp(page)

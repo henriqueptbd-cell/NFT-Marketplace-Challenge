@@ -25,6 +25,7 @@ import {
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { nftQueryKeys } from '@/hooks/useNfts'
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@/lib/api-errors'
+import { openAuthDialog } from '@/lib/auth-dialog'
 import { cartCheckoutCopy as copy } from '@/lib/cart-checkout-copy'
 import { addDecimalStrings, multiplyDecimalString } from '@/lib/decimal'
 
@@ -157,7 +158,7 @@ export function CartPage() {
 
   function proceedToCheckout() {
     if (!currentUser) {
-      void navigate({ to: '/login', search: { redirect: '/checkout' } })
+      openAuthDialog({ mode: 'login', redirect: '/checkout' })
       return
     }
     void navigate({ to: '/checkout' })

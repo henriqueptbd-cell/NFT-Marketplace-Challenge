@@ -173,7 +173,7 @@ Os screens usam retratos quadrados/recortáveis de primatas estilizados. A lista
 - **Profile mobile** e **Wallets mobile** não aparecem; adaptar a sidebar desktop para navegação compacta e definir fluxo/formulário mobile.
 - **Confirmation modal mobile** não aparece; definir se vira página, bottom sheet ou modal de tela cheia, incluindo fechamento e comportamento do CTA externo.
 - Não há telas completas de **coleção**, perfil de criador, busca, resultados filtrados, histórico/atividade, lista de interesse, ofertas, downloads, suporte ou aprendizagem; esses links aparecem na navegação/rodapé, mas sem destinos demonstrados.
-- Não há rota desktop dedicada de login/registro: o material mostra esses fluxos como modais sobre a Home, além de telas mobile dedicadas. Confirmar se o desktop deve ter modal, rota, ou ambos.
+- Não há rota desktop dedicada de login/registro: o material mostra esses fluxos como modais sobre a Home, além de telas mobile dedicadas. Confirmar se o desktop deve ter modal, rota, ou ambos. **Resolvido na implementação:** o desktop usa o modal (páginas 6 e 7) sobre a rota atual; `/login` e `/register` existem só como atalhos que abrem o modal e devolvem a navegação para a página de origem.
 - Não há tablet/intermediário, menu mobile aberto, scroll states nem regras de breakpoints/container.
 
 ### Estados de interação ausentes

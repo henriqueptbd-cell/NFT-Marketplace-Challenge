@@ -13,19 +13,28 @@ async function openRoute(page: Page, path: string): Promise<void> {
   await page.goto(path)
   await page.waitForFunction(() => {
     const browserWindow = window as unknown as TestWindow
+    const root = document.querySelector('#root')
     return (
       typeof browserWindow.__mswScenario === 'function' &&
-      document.querySelector('#root main') !== null
+      root !== null &&
+      root.childElementCount > 0
     )
   })
 }
 
+function authDialog(page: Page) {
+  return page.getByRole('dialog')
+}
+
 async function signIn(page: Page): Promise<void> {
   await openRoute(page, '/login')
+  await expect(authDialog(page)).toBeVisible()
   await page.locator('#login-email').fill('user@kurio.io')
   await page.locator('#login-password').fill('demo1234')
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await page.waitForURL((url) => url.pathname !== '/login')
+  await authDialog(page)
+    .getByRole('button', { name: 'Entrar', exact: true })
+    .click()
+  await expect(authDialog(page)).toBeHidden()
 }
 
 async function addEmeraldApe(page: Page): Promise<void> {
@@ -152,8 +161,8 @@ test('checkout exige sessão, preserva redirect e mantém carrinho convidado', a
 }) => {
   await addEmeraldApe(page)
   await openRoute(page, '/checkout')
-  await page.waitForURL((url) => url.pathname === '/login')
-  expect(new URL(page.url()).searchParams.get('redirect')).toBe('/checkout')
+  await expect(authDialog(page)).toBeVisible()
+  expect(new URL(page.url()).pathname).toBe('/checkout')
 
   await openRoute(page, '/cart')
   await expect(
@@ -198,19 +207,24 @@ test('falha transitória do merge pós-login informa e permite retry', async ({
 }) => {
   await addEmeraldApe(page)
   await openRoute(page, '/login')
+  await expect(authDialog(page)).toBeVisible()
   await setScenario(page, 'flaky-500')
   await page.locator('#login-email').fill('user@kurio.io')
   await page.locator('#login-password').fill('demo1234')
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await authDialog(page)
+    .getByRole('button', { name: 'Entrar', exact: true })
+    .click()
 
   await expect(
-    page.getByRole('alert').filter({ hasText: 'carrinho não sincronizou' }),
+    authDialog(page)
+      .getByRole('alert')
+      .filter({ hasText: 'carrinho não sincronizou' }),
   ).toBeVisible()
   await setScenario(page, 'default')
-  await page
+  await authDialog(page)
     .getByRole('button', { name: 'Tentar sincronizar carrinho' })
     .click()
-  await page.waitForURL((url) => url.pathname !== '/login')
+  await expect(authDialog(page)).toBeHidden()
 
   await openRoute(page, '/cart')
   await expect(

@@ -74,6 +74,10 @@ export const cartCheckoutCopy = {
     walletTitle: 'Selecione uma carteira',
     walletNetwork: (network: string) => `Rede ${network}`,
     walletPrimary: 'Principal',
+    authRequiredTitle: 'Entre para finalizar a compra',
+    authRequiredDescription:
+      'Seu carrinho está preservado. Entre na sua conta para concluir o pagamento.',
+    authRequired: 'Entrar',
     noWalletTitle: 'Nenhuma carteira conectada',
     noWalletDescription: 'Adicione uma carteira à sua conta para continuar.',
     manageWallets: 'Gerenciar carteiras',

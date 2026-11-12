@@ -6,12 +6,11 @@ import {
 import { HomePage } from '@/routes/HomePage'
 import { CartPage } from '@/routes/CartPage'
 import { CheckoutPage } from '@/routes/CheckoutPage'
-import { LoginPage } from '@/routes/LoginPage'
 import { NFTDetailPage } from '@/routes/NFTDetailPage'
 import { ProfilePage } from '@/routes/ProfilePage'
-import { RegisterPage } from '@/routes/RegisterPage'
 import { RootLayout } from '@/routes/RootLayout'
 import { WalletsPage } from '@/routes/WalletsPage'
+import { LoginDialogRoute, RegisterDialogRoute } from '@/routes/AuthDialogRoute'
 import {
   authRedirectSearchSchema,
   marketplaceSearchSchema,
@@ -54,14 +53,14 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   validateSearch: (search) => authRedirectSearchSchema.parse(search),
-  component: LoginPage,
+  component: LoginDialogRoute,
 })
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/register',
   validateSearch: (search) => authRedirectSearchSchema.parse(search),
-  component: RegisterPage,
+  component: RegisterDialogRoute,
 })
 
 const profileRoute = createRoute({

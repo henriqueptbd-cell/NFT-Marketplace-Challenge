@@ -14,8 +14,21 @@ export const accountCopy = {
     loginPending: 'Entrando…',
     registerAction: 'Criar perfil',
     registerPending: 'Criando perfil…',
+    loginTab: 'Entrar',
+    registerTab: 'Criar conta',
     loginSwitch: 'Já tem uma conta? Entrar',
     registerSwitch: 'Ainda não tem uma conta? Criar perfil',
+    forgotPassword: 'Esqueci minha senha',
+    forgotPasswordPending: 'Enviando…',
+    forgotPasswordSent:
+      'Se houver uma conta com este e-mail, enviamos um link de recuperação.',
+    forgotPasswordMissingEmail: 'Informe seu e-mail para recuperar a senha.',
+    forgotPasswordError:
+      'Não foi possível enviar o link de recuperação. Tente novamente.',
+    socialDivider: 'Ou continue com',
+    socialPending: 'Conectando…',
+    socialError:
+      'Não foi possível entrar com o provedor social. Tente novamente.',
     passwordHint: 'Use pelo menos 8 caracteres.',
     loginError:
       'Não foi possível entrar. Confira seus dados e tente novamente.',
@@ -68,6 +81,10 @@ export const accountCopy = {
     passwordSave: 'Alterar senha',
     saved: 'Seu perfil foi atualizado.',
     passwordSaved: 'Sua senha foi alterada.',
+    authRequiredTitle: 'Entre para ver seu perfil',
+    authRequiredDescription:
+      'Acesse sua conta de colecionador para editar seus dados.',
+    authRequired: 'Entrar',
   },
   wallets: {
     title: 'Carteiras',

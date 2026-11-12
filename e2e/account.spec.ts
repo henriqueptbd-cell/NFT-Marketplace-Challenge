@@ -8,11 +8,17 @@ async function openRoute(page: Page, path: string): Promise<void> {
   await page.goto(path)
   await page.waitForFunction(() => {
     const browserWindow = window as unknown as TestWindow
+    const root = document.querySelector('#root')
     return (
       typeof browserWindow.__mswScenario === 'function' &&
-      document.querySelector('#root main') !== null
+      root !== null &&
+      root.childElementCount > 0
     )
   })
+}
+
+function authDialog(page: Page) {
+  return page.getByRole('dialog')
 }
 
 async function signInThroughForm(
@@ -27,11 +33,15 @@ async function signInThroughForm(
   await page.locator('#login-email').fill(email)
   await page.locator('#login-password').fill(password)
   if (rememberMe) await page.locator('#login-remember-me').check()
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'))
+  await expect(authDialog(page)).toBeVisible()
+  await authDialog(page)
+    .getByRole('button', { name: 'Entrar', exact: true })
+    .click()
   await page.waitForFunction(
     () => window.localStorage.getItem('kurio:user:v1') !== null,
   )
+  await expect(authDialog(page)).toBeHidden()
+  if (redirect) await page.waitForURL((url) => url.pathname === redirect)
 }
 
 test('login redireciona, restaura sessão após refresh e logout remove a sessão', async ({
@@ -78,7 +88,9 @@ test('login redireciona, restaura sessão após refresh e logout remove a sessã
   )
 
   await page.getByRole('button', { name: 'Sair' }).click()
-  await expect(page.getByRole('link', { name: 'Entrar' })).toBeVisible()
+  await expect(
+    page.locator('header').getByRole('button', { name: 'Entrar' }),
+  ).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(() => window.localStorage.getItem('kurio:user:v1')),
@@ -97,11 +109,14 @@ test('login redireciona, restaura sessão após refresh e logout remove a sessã
 
 test('registro liga e-mail duplicado ao campo e-mail', async ({ page }) => {
   await openRoute(page, '/register')
+  await expect(authDialog(page)).toBeVisible()
   await page.locator('#register-name').fill('Colecionador de demonstração')
   await page.locator('#register-email').fill('user@kurio.io')
   await page.locator('#register-password').fill('demo1234')
   await page.locator('#register-confirm-password').fill('demo1234')
-  await page.getByRole('button', { name: 'Criar perfil', exact: true }).click()
+  await authDialog(page)
+    .getByRole('button', { name: 'Criar perfil', exact: true })
+    .click()
 
   await expect(page.locator('#register-email')).toHaveAttribute(
     'aria-invalid',
@@ -142,7 +157,9 @@ test('perfil e senha persistem após atualizar a conta', async ({ page }) => {
   await expect(page.getByText('Sua senha foi alterada.')).toBeVisible()
 
   await page.getByRole('button', { name: 'Sair' }).click()
-  await expect(page.getByRole('link', { name: 'Entrar' })).toBeVisible()
+  await expect(
+    page.locator('header').getByRole('button', { name: 'Entrar' }),
+  ).toBeVisible()
   await signInThroughForm(page, 'user@kurio.io', 'nova-senha-1234')
 })
 
@@ -201,7 +218,7 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
   await expect(drawer).toBeHidden()
 })
 
-test('401 por sessão expirada redireciona ao login e preserva a rota de retorno', async ({
+test('401 por sessão expirada abre o card de login sobre a rota atual', async ({
   page,
 }) => {
   await signInThroughForm(page)
@@ -224,8 +241,50 @@ test('401 por sessão expirada redireciona ao login e preserva a rota de retorno
     browserWindow.__mswScenario('session-expired')
   })
   await page.goto('/profile')
-  await page.waitForURL((url) => url.pathname === '/login')
-  const redirect = new URL(page.url()).searchParams.get('redirect')
-  expect(redirect).toBe('/profile')
+  await expect(authDialog(page)).toBeVisible()
+  expect(new URL(page.url()).pathname).toBe('/profile')
   await expect(page.getByText('Sua sessão expirou')).toBeVisible()
+})
+
+test('card de autenticação sobrepõe a rota, alterna abas e fecha com Esc', async ({
+  page,
+}) => {
+  await openRoute(page, '/')
+  await page.locator('header').getByRole('button', { name: 'Entrar' }).click()
+
+  const dialog = authDialog(page)
+  await expect(dialog).toBeVisible()
+  await expect(
+    dialog.getByRole('heading', { name: 'Entrar', exact: true }),
+  ).toBeVisible()
+  await expect(page.locator('#login-email')).toBeVisible()
+  expect(new URL(page.url()).pathname).toBe('/')
+
+  await dialog.getByRole('tab', { name: 'Criar conta' }).click()
+  await expect(page.locator('#register-name')).toBeVisible()
+  await expect(
+    dialog.getByRole('heading', { name: 'Criar perfil de colecionador' }),
+  ).toBeVisible()
+
+  await dialog.getByRole('tab', { name: 'Entrar', exact: true }).click()
+  await expect(page.locator('#login-email')).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+})
+
+test('login social autentica com o provedor mockado', async ({ page }) => {
+  await openRoute(page, '/')
+  await page.locator('header').getByRole('button', { name: 'Entrar' }).click()
+  const dialog = authDialog(page)
+  await expect(dialog).toBeVisible()
+
+  await dialog.getByRole('button', { name: 'Google' }).click()
+  await page.waitForFunction(
+    () => window.localStorage.getItem('kurio:user:v1') !== null,
+  )
+  await expect(dialog).toBeHidden()
+  await expect(
+    page.locator('header').getByRole('button', { name: 'Entrar' }),
+  ).toBeHidden()
 })

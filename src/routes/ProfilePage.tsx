@@ -19,6 +19,7 @@ import {
 import type { CollectorProfile } from '@/api/types'
 import { accountCopy } from '@/lib/account-copy'
 import {
+  apiErrorCode,
   apiErrorMessage,
   apiFieldErrors,
   zodFieldErrors,
@@ -29,7 +30,9 @@ import {
   type PasswordChangeValues,
   type ProfileFormValues,
 } from '@/lib/validation'
+import { EmptyState } from '@/components/domain/EmptyState'
 import { ErrorState } from '@/components/domain/ErrorState'
+import { openAuthDialog } from '@/lib/auth-dialog'
 
 interface ProfileEditorProps {
   profile: CollectorProfile
@@ -434,7 +437,7 @@ export function ProfilePage() {
     return <SettingsSkeleton />
   }
   if (!authQuery.data) {
-    if (authQuery.isError) {
+    if (authQuery.isError && apiErrorCode(authQuery.error) !== 'UNAUTHORIZED') {
       return (
         <div className="mx-auto max-w-3xl px-4 py-12">
           <ErrorState
@@ -449,7 +452,18 @@ export function ProfilePage() {
         </div>
       )
     }
-    return null
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <EmptyState
+          title={accountCopy.profile.authRequiredTitle}
+          description={accountCopy.profile.authRequiredDescription}
+          actionLabel={accountCopy.profile.authRequired}
+          onAction={() =>
+            openAuthDialog({ mode: 'login', redirect: '/profile' })
+          }
+        />
+      </div>
+    )
   }
   if (profileQuery.isError || !profileQuery.data) {
     return (

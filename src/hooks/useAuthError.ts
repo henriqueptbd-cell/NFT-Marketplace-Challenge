@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import {
   API_UNAUTHORIZED_EVENT,
   clearPersistedUser,
@@ -8,7 +7,8 @@ import {
 } from '@/api/client'
 import { disconnectRealtimeClient } from '@/api/realtime'
 import { accountCopy } from '@/lib/account-copy'
-import { queryClient } from '@/lib/query-client'
+import { openAuthDialog } from '@/lib/auth-dialog'
+import { resetQueryCache } from '@/lib/query-client'
 
 export interface AuthNotice {
   title: string
@@ -16,7 +16,6 @@ export interface AuthNotice {
 }
 
 export function useAuthError() {
-  const navigate = useNavigate()
   const [notice, setNotice] = useState<AuthNotice | null>(null)
   const handledRef = useRef(false)
 
@@ -28,18 +27,17 @@ export function useAuthError() {
       if (handledRef.current) return
       handledRef.current = true
       clearPersistedUser()
-      queryClient.clear()
+      resetQueryCache()
       disconnectRealtimeClient()
       setNotice({
         title: accountCopy.session.expiredTitle,
         description: accountCopy.session.expiredDescription,
       })
-      const pathname = window.location.pathname
-      const redirect = `${pathname}${window.location.search}${window.location.hash}`
+      const { pathname, search, hash } = window.location
       if (pathname !== '/login' && pathname !== '/register') {
-        void navigate({
-          to: '/login',
-          search: { redirect },
+        openAuthDialog({
+          mode: 'login',
+          redirect: `${pathname}${search}${hash}`,
         })
       }
     }
@@ -50,7 +48,7 @@ export function useAuthError() {
       window.removeEventListener(API_UNAUTHORIZED_EVENT, handleUnauthorized)
       window.removeEventListener(USER_STORAGE_EVENT, resetGuard)
     }
-  }, [navigate])
+  }, [])
 
   return {
     notice,

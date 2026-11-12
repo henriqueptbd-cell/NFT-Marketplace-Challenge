@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useCart } from '@/hooks/useCart'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useSectionNav } from '@/hooks/useSectionNav'
+import { openAuthDialog } from '@/lib/auth-dialog'
 import { discoveryCopy } from '@/lib/discovery-copy'
 import { cn } from '@/lib/cn'
 
@@ -60,6 +61,12 @@ export function MarketplaceHeader({
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+  const openLoginDialog = () => {
+    openAuthDialog({
+      mode: 'login',
+      redirect: `${window.location.pathname}${window.location.search}`,
+    })
+  }
   const isHomePage = pathname === '/'
   const isMarketplacePage = isMarketplaceFlow(pathname)
   const query =
@@ -217,12 +224,13 @@ export function MarketplaceHeader({
               {currentUser.displayName}
             </Link>
           ) : (
-            <Link
-              to="/login"
+            <button
+              type="button"
+              onClick={openLoginDialog}
               className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-button bg-primary px-3 text-sm font-semibold text-on-primary transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4"
             >
               {discoveryCopy.header.login}
-            </Link>
+            </button>
           )}
         </div>
       </div>

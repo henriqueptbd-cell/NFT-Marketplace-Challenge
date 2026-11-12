@@ -41,6 +41,7 @@ import {
   saveCheckoutAttempt,
   type CheckoutAttempt,
 } from '@/lib/checkout-attempt'
+import { openAuthDialog } from '@/lib/auth-dialog'
 import { cartCheckoutCopy as copy } from '@/lib/cart-checkout-copy'
 import { addDecimalStrings, multiplyDecimalString } from '@/lib/decimal'
 
@@ -249,17 +250,13 @@ export function CheckoutPage() {
 
   useEffect(() => {
     if (!currentUser) {
-      void navigate({
-        to: '/login',
-        search: { redirect: '/checkout' },
-        replace: true,
-      })
+      openAuthDialog({ mode: 'login', redirect: '/checkout' })
       return
     }
     if (attempt && attempt.userId !== currentUser.id) {
       clearCheckoutAttempt()
     }
-  }, [attempt, currentUser, navigate])
+  }, [attempt, currentUser])
 
   const quoteId = quoteQuery.data?.id
   const quoteExpiresAt = quoteQuery.data?.expiresAt
@@ -407,10 +404,18 @@ export function CheckoutPage() {
             {copy.checkout.title}
           </h1>
 
-          {!currentUser ||
-          (cartQuery.isPending && !cart) ||
-          profileQuery.isPending ||
-          walletsQuery.isPending ? (
+          {!currentUser ? (
+            <EmptyState
+              title={copy.checkout.authRequiredTitle}
+              description={copy.checkout.authRequiredDescription}
+              actionLabel={copy.checkout.authRequired}
+              onAction={() =>
+                openAuthDialog({ mode: 'login', redirect: '/checkout' })
+              }
+            />
+          ) : (cartQuery.isPending && !cart) ||
+            profileQuery.isPending ||
+            walletsQuery.isPending ? (
             <CheckoutLoading />
           ) : hasLoadError ? (
             <ErrorState

@@ -33,6 +33,15 @@ const changePasswordSchema = z
     newPassword: z.string().min(8),
   })
   .strict()
+const socialLoginSchema = z
+  .object({ provider: z.enum(['google', 'facebook']) })
+  .strict()
+const forgotPasswordSchema = z
+  .object({ email: z.string().trim().email() })
+  .strict()
+
+// Conta usada pelo login social simulado no build de demonstração.
+const DEMO_EMAIL = 'user@kurio.io'
 
 interface CreatedAuthResponse {
   payload: {
@@ -258,5 +267,31 @@ export const authHandlers = [
       if (user) user.password = parsed.data.newPassword
     })
     return HttpResponse.json({ success: true })
+  }),
+
+  http.post('/api/auth/social', async ({ request }) => {
+    const parsed = await readJsonBody(request, socialLoginSchema)
+    if (!parsed.ok) return parsed.response
+    const state = getMockState()
+    const demoUser = state.users.find((item) => item.email === DEMO_EMAIL)
+    if (!demoUser) {
+      return apiErrorResponse(
+        503,
+        'SOCIAL_UNAVAILABLE',
+        'O provedor de identidade não está disponível.',
+      )
+    }
+    const response = await createAuthResponse(demoUser.id)
+    return response
+      ? HttpResponse.json(response.payload, {
+          headers: { 'Set-Cookie': sessionCookie(response.cookieToken, false) },
+        })
+      : apiErrorResponse(500, 'INTERNAL_ERROR', 'Could not create a session.')
+  }),
+
+  http.post('/api/auth/forgot-password', async ({ request }) => {
+    const parsed = await readJsonBody(request, forgotPasswordSchema)
+    if (!parsed.ok) return parsed.response
+    return HttpResponse.json({ message: 'RESET_LINK_SENT' })
   }),
 ]

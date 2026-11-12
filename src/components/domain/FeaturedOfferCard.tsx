@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import type { NFT } from '@/api/types/nft'
+import { NFTImage } from '@/components/domain/NFTImage'
 import { cn } from '@/lib/cn'
 import { discoveryCopy } from '@/lib/discovery-copy'
 
@@ -15,6 +16,14 @@ export function FeaturedOfferCard({ nft, className }: FeaturedOfferCardProps) {
 
   const content = (
     <>
+      {nft ? (
+        <NFTImage
+          src={nft.image}
+          alt={discoveryCopy.accessibility.featuredImage(nft.name)}
+          aspectRatio="square"
+          className="mb-4 border border-border"
+        />
+      ) : null}
       <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-primary">
         {copy.eyebrow}
       </p>
