@@ -1,10 +1,17 @@
 import { nftListSchema } from '@/api/types/nft'
 
+/** Só existem quatro artes no acervo; os 24 itens do catálogo as reaproveitam. */
+const apeImages = [
+  '/nfts/ape1.webp',
+  '/nfts/ape2.webp',
+  '/nfts/ape3.webp',
+  '/nfts/ape4.webp',
+]
+
 const baseNftFixtures = [
   {
     id: 'emerald-ape-042',
     name: 'Emerald Ape #042',
-    image: '/nfts/emerald-ape-042.webp',
     priceString: '1.19',
     edition: { total: 50, available: 12, isOpen: false },
     collection: 'Kurio Apes',
@@ -20,7 +27,6 @@ const baseNftFixtures = [
   {
     id: 'sage-nomad-089',
     name: 'Sage Nomad #089',
-    image: '/nfts/sage-nomad-089.webp',
     priceString: '0.32',
     edition: { total: 25, available: 6, isOpen: false },
     collection: 'Kurio Apes',
@@ -35,7 +41,6 @@ const baseNftFixtures = [
   {
     id: 'neon-vessel-552',
     name: 'Neon Vessel #552',
-    image: '/nfts/neon-vessel-552.webp',
     priceString: '2.45',
     edition: { total: 10, available: 0, isOpen: false },
     collection: 'Kurio Apes',
@@ -50,7 +55,6 @@ const baseNftFixtures = [
   {
     id: 'cosmic-bloom-118',
     name: 'Cosmic Bloom #118',
-    image: '/nfts/cosmic-bloom-118.webp',
     priceString: '0.88',
     edition: { total: 100, available: 42, isOpen: true },
     collection: 'Kurio Apes',
@@ -65,7 +69,6 @@ const baseNftFixtures = [
   {
     id: 'violet-nomad-314',
     name: 'Violet Nomad #314',
-    image: '/nfts/violet-nomad-314.webp',
     priceString: '1.39',
     edition: { total: 10, available: 3, isOpen: false },
     collection: 'Kurio Apes',
@@ -80,7 +83,6 @@ const baseNftFixtures = [
   {
     id: 'ivory-baron-088',
     name: 'Ivory Baron #088',
-    image: '/nfts/ivory-baron-088.webp',
     priceString: '1.79',
     edition: { total: 10, available: 1, isOpen: false },
     collection: 'Kurio Apes',
@@ -95,7 +97,6 @@ const baseNftFixtures = [
   {
     id: 'golden-beat-207',
     name: 'Golden Beat #207',
-    image: '/nfts/golden-beat-207.webp',
     priceString: '0.99',
     edition: { total: 50, available: 12, isOpen: false },
     collection: 'Kurio Apes',
@@ -110,7 +111,6 @@ const baseNftFixtures = [
   {
     id: 'golden-frequency-071',
     name: 'Golden Frequency #071',
-    image: '/nfts/golden-frequency-071.webp',
     priceString: '1.42',
     edition: { total: 50, available: 0, isOpen: false },
     collection: 'Kurio Apes',
@@ -125,7 +125,6 @@ const baseNftFixtures = [
   {
     id: 'golden-signal-160',
     name: 'Golden Signal #160',
-    image: '/nfts/golden-signal-160.webp',
     priceString: '1.18',
     edition: { total: 50, available: 19, isOpen: false },
     collection: 'Kurio Apes',
@@ -140,7 +139,6 @@ const baseNftFixtures = [
   {
     id: 'obsidian-crown-301',
     name: 'Obsidian Crown #301',
-    image: '/nfts/obsidian-crown-301.webp',
     priceString: '12.30',
     edition: { total: 1, available: 1, isOpen: false },
     collection: 'Kurio Apes',
@@ -155,7 +153,6 @@ const baseNftFixtures = [
   {
     id: 'ember-courier-223',
     name: 'Ember Courier #223',
-    image: '/nfts/ember-courier-223.webp',
     priceString: '0.02',
     edition: { total: 100, available: 75, isOpen: false },
     collection: 'Kurio Apes',
@@ -170,7 +167,6 @@ const baseNftFixtures = [
   {
     id: 'moonlit-wanderer-018',
     name: 'Moonlit Wanderer #018',
-    image: '/nfts/moonlit-wanderer-018.webp',
     priceString: '0.14',
     edition: { total: 50, available: 9, isOpen: false },
     collection: 'Kurio Apes',
@@ -185,7 +181,6 @@ const baseNftFixtures = [
   {
     id: 'amber-regent-007',
     name: 'Amber Regent #007',
-    image: '/nfts/amber-regent-007.webp',
     priceString: '3.75',
     edition: { total: 10, available: 2, isOpen: false },
     collection: 'Kurio Origins',
@@ -200,7 +195,6 @@ const baseNftFixtures = [
   {
     id: 'moss-oracle-121',
     name: 'Moss Oracle #121',
-    image: '/nfts/moss-oracle-121.webp',
     priceString: '0.63',
     edition: { total: 100, available: 20, isOpen: true },
     collection: 'Kurio Origins',
@@ -215,7 +209,6 @@ const baseNftFixtures = [
   {
     id: 'velvet-voyager-515',
     name: 'Velvet Voyager #515',
-    image: '/nfts/velvet-voyager-515.webp',
     priceString: '2.02',
     edition: { total: 10, available: 7, isOpen: false },
     collection: 'Kurio Origins',
@@ -230,7 +223,6 @@ const baseNftFixtures = [
   {
     id: 'bronze-muse-611',
     name: 'Bronze Muse #611',
-    image: '/nfts/bronze-muse-611.webp',
     priceString: '0.33',
     edition: { total: 50, available: 0, isOpen: false },
     collection: 'Kurio Origins',
@@ -245,7 +237,6 @@ const baseNftFixtures = [
   {
     id: 'electric-elder-044',
     name: 'Electric Elder #044',
-    image: '/nfts/electric-elder-044.webp',
     priceString: '5.20',
     edition: { total: 10, available: 1, isOpen: false },
     collection: 'Neon Society',
@@ -260,7 +251,6 @@ const baseNftFixtures = [
   {
     id: 'cobalt-dreamer-809',
     name: 'Cobalt Dreamer #809',
-    image: '/nfts/cobalt-dreamer-809.webp',
     priceString: '0.57',
     edition: { total: 50, available: 33, isOpen: false },
     collection: 'Neon Society',
@@ -275,7 +265,6 @@ const baseNftFixtures = [
   {
     id: 'ruby-riddle-216',
     name: 'Ruby Riddle #216',
-    image: '/nfts/ruby-riddle-216.webp',
     priceString: '4.80',
     edition: { total: 10, available: 0, isOpen: false },
     collection: 'Neon Society',
@@ -290,7 +279,6 @@ const baseNftFixtures = [
   {
     id: 'luminous-echo-090',
     name: 'Luminous Echo #090',
-    image: '/nfts/luminous-echo-090.webp',
     priceString: '1.04',
     edition: { total: 50, available: 8, isOpen: false },
     collection: 'Neon Society',
@@ -305,7 +293,6 @@ const baseNftFixtures = [
   {
     id: 'signal-keeper-410',
     name: 'Signal Keeper #410',
-    image: '/nfts/signal-keeper-410.webp',
     priceString: '0.22',
     edition: { total: 100, available: 44, isOpen: false },
     collection: 'Studio Signals',
@@ -320,7 +307,6 @@ const baseNftFixtures = [
   {
     id: 'frequency-maker-602',
     name: 'Frequency Maker #602',
-    image: '/nfts/frequency-maker-602.webp',
     priceString: '3.10',
     edition: { total: 10, available: 4, isOpen: false },
     collection: 'Studio Signals',
@@ -335,7 +321,6 @@ const baseNftFixtures = [
   {
     id: 'arctic-pulse-005',
     name: 'Arctic Pulse #005',
-    image: '/nfts/arctic-pulse-005.webp',
     priceString: '0.37',
     edition: { total: 100, available: 62, isOpen: true },
     collection: 'Prism Apes',
@@ -350,7 +335,6 @@ const baseNftFixtures = [
   {
     id: 'solar-nomad-900',
     name: 'Solar Nomad #900',
-    image: '/nfts/solar-nomad-900.webp',
     priceString: '2.75',
     edition: { total: 25, available: 10, isOpen: false },
     collection: 'Prism Apes',
@@ -370,12 +354,17 @@ const ratings = [
 ]
 
 export const nftFixtures = nftListSchema.parse(
-  baseNftFixtures.map((nft, index) => ({
-    ...nft,
-    images: [nft.image, nft.image.replace(/\.webp$/, '-detail.webp')],
-    rating: ratings[index] ?? 4.5,
-    reviewCount: 12 + index * 4,
-    createdAt: new Date(Date.UTC(2026, 10, 11 - index)).toISOString(),
-    trendingScore: 1_000 - index * 23,
-  })),
+  baseNftFixtures.map((nft, index) => {
+    const image = apeImages[index % apeImages.length]
+
+    return {
+      ...nft,
+      image,
+      images: [image],
+      rating: ratings[index] ?? 4.5,
+      reviewCount: 12 + index * 4,
+      createdAt: new Date(Date.UTC(2026, 10, 11 - index)).toISOString(),
+      trendingScore: 1_000 - index * 23,
+    }
+  }),
 )

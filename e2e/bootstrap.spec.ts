@@ -129,11 +129,11 @@ test('serves the shell and a 24-NFT catalog without image assets', async ({
     expect.arrayContaining([
       expect.objectContaining({
         name: 'Emerald Ape #042',
-        image: '/nfts/emerald-ape-042.webp',
+        image: '/nfts/ape1.webp',
       }),
       expect.objectContaining({
         name: 'Sage Nomad #089',
-        image: '/nfts/sage-nomad-089.webp',
+        image: '/nfts/ape2.webp',
       }),
       expect.objectContaining({ name: 'Neon Vessel #552' }),
       expect.objectContaining({ name: 'Cosmic Bloom #118' }),
