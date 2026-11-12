@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { networkSchema, decimalStringSchema } from '@/api/types/common'
-import { walletTypeSchema } from '@/api/types/wallet'
+import { isValidWalletAddress, walletTypeSchema } from '@/api/types/wallet'
 import { nftSortSchema } from '@/api/types/nft'
 import { decimalToUnits } from '@/lib/decimal'
 import { accountCopy } from '@/lib/account-copy'
@@ -105,10 +105,7 @@ export const walletFormSchema = z
     name: z.string().trim().min(1, accountCopy.validation.required).max(64),
     nickname: z.string().trim().min(1, accountCopy.validation.required).max(48),
     network: networkSchema,
-    address: z
-      .string()
-      .trim()
-      .regex(/^0x[a-fA-F0-9]{40}$/, accountCopy.validation.walletAddress),
+    address: z.string().trim().min(1, accountCopy.validation.required),
     type: walletTypeSchema,
     ens: z
       .string()
@@ -120,6 +117,17 @@ export const walletFormSchema = z
     email: z.string().trim().email(accountCopy.validation.invalidEmail),
   })
   .strict()
+  .superRefine((wallet, context) => {
+    if (isValidWalletAddress(wallet.address, wallet.network)) return
+    context.addIssue({
+      code: 'custom',
+      path: ['address'],
+      message:
+        wallet.network === 'Solana'
+          ? accountCopy.validation.walletAddressSolana
+          : accountCopy.validation.walletAddressEvm,
+    })
+  })
 
 export type MarketplaceSearch = z.infer<typeof marketplaceSearchSchema>
 

@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toast } from '@/components/ui/toast'
 import { addWallet, getWallets, updateWallet } from '@/api/endpoints'
-import type { Wallet } from '@/api/types'
+import { walletAddressesEqual, type Wallet } from '@/api/types'
 import { networkSchema, walletTypeSchema } from '@/api/types'
 import { useAuthSession } from '@/hooks/useAuth'
 import { accountCopy } from '@/lib/account-copy'
@@ -110,6 +110,7 @@ function WalletFormFields({
         value={values.name}
         onChange={(value) => onTextChange('name', value)}
         error={errors.name}
+        description={accountCopy.wallets.nameHint}
         required
       />
       <AccountTextField
@@ -118,11 +119,13 @@ function WalletFormFields({
         value={values.nickname}
         onChange={(value) => onTextChange('nickname', value)}
         error={errors.nickname}
+        description={accountCopy.wallets.nicknameHint}
         required
       />
       <FormField
         id={networkId}
         label={accountCopy.wallets.network}
+        description={accountCopy.wallets.networkHint}
         error={networkError}
         required
         requiredIndicator={accountCopy.common.required}
@@ -130,7 +133,12 @@ function WalletFormFields({
         <Select
           id={networkId}
           ariaLabel={accountCopy.wallets.network}
-          ariaDescribedBy={networkError ? `${networkId}-error` : undefined}
+          ariaDescribedBy={[
+            `${networkId}-description`,
+            networkError ? `${networkId}-error` : undefined,
+          ]
+            .filter(Boolean)
+            .join(' ')}
           ariaInvalid={Boolean(networkError)}
           value={values.network}
           options={accountCopy.networkOptions}
@@ -144,12 +152,18 @@ function WalletFormFields({
         value={values.address}
         onChange={(value) => onTextChange('address', value)}
         error={errors.address}
+        description={
+          values.network === 'Solana'
+            ? accountCopy.wallets.addressHintSolana
+            : accountCopy.wallets.addressHintEvm
+        }
         autoComplete="off"
         required
       />
       <FormField
         id={typeId}
         label={accountCopy.wallets.type}
+        description={accountCopy.wallets.typeHint}
         error={typeError}
         required
         requiredIndicator={accountCopy.common.required}
@@ -157,7 +171,12 @@ function WalletFormFields({
         <Select
           id={typeId}
           ariaLabel={accountCopy.wallets.type}
-          ariaDescribedBy={typeError ? `${typeId}-error` : undefined}
+          ariaDescribedBy={[
+            `${typeId}-description`,
+            typeError ? `${typeId}-error` : undefined,
+          ]
+            .filter(Boolean)
+            .join(' ')}
           ariaInvalid={Boolean(typeError)}
           value={values.type}
           options={walletTypeOptions}
@@ -171,6 +190,7 @@ function WalletFormFields({
         value={values.ens}
         onChange={(value) => onTextChange('ens', value)}
         error={errors.ens}
+        description={accountCopy.wallets.ensHint}
       />
       <AccountTextField
         id={idFor('referral-code')}
@@ -178,6 +198,7 @@ function WalletFormFields({
         value={values.referralCode}
         onChange={(value) => onTextChange('referralCode', value)}
         error={errors.referralCode}
+        description={accountCopy.wallets.referralCodeHint}
       />
       <AccountTextField
         id={idFor('email')}
@@ -187,6 +208,7 @@ function WalletFormFields({
         value={values.email}
         onChange={(value) => onTextChange('email', value)}
         error={errors.email}
+        description={accountCopy.wallets.emailHint}
         required
       />
     </div>
@@ -295,9 +317,12 @@ function WalletsEditor({
 
     if (secondaryEnabled && parsedSecondary?.success) {
       const duplicateOfPrimary =
-        parsedSecondary.data.address.toLowerCase() ===
-          parsedPrimary.data.address.toLowerCase() &&
-        parsedSecondary.data.network === parsedPrimary.data.network
+        parsedSecondary.data.network === parsedPrimary.data.network &&
+        walletAddressesEqual(
+          parsedSecondary.data.address,
+          parsedPrimary.data.address,
+          parsedPrimary.data.network,
+        )
       if (!duplicateOfPrimary) {
         try {
           await onSaveSecondary(toWalletInput(parsedSecondary.data))
@@ -311,6 +336,9 @@ function WalletsEditor({
 
   return (
     <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
+      <p className="text-sm text-text-secondary">
+        {accountCopy.wallets.formHint}
+      </p>
       <section className="rounded-card border border-border bg-surface p-4 sm:p-6">
         <h2 className="mb-5 font-display text-xl font-bold text-text-primary">
           {accountCopy.wallets.primaryTitle}

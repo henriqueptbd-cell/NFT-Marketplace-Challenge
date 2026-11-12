@@ -65,7 +65,11 @@ export {
   type UserRole,
 } from '@/api/types/user'
 export {
+  isValidWalletAddress,
+  walletAddressesEqual,
   walletSchema,
+  walletInputSchema,
+  walletPatchSchema,
   walletTypeSchema,
   type Wallet,
   type WalletType,

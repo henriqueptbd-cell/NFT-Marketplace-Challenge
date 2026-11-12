@@ -50,6 +50,12 @@ Todo erro REST tem formato `{ code, message, fieldErrors? }`. `fieldErrors` é o
 - `/checkout` — protegido por sessão; seleciona carteira, cria/atualiza cotação, cria pedido idempotente e exibe confirmação/recusa.
 - `/profile` e `/wallets` — páginas protegidas para perfil e carteiras.
 
+### Cadastro de carteiras
+
+Para salvar uma carteira, preencha os campos marcados com `*`: **nome**, **apelido**, **rede**, **endereço público**, **tipo** e **e-mail**. O e-mail da conta já vem preenchido. **ENS** e **código de indicação** são opcionais; a carteira secundária também é opcional. Para adicionar uma secundária, marque “Adicionar carteira secundária” e preencha seus próprios campos obrigatórios; “Igual à carteira principal” copia os valores da principal.
+
+O endereço precisa corresponder à rede selecionada: Ethereum e Polygon usam `0x` seguido de 40 caracteres hexadecimais; Solana usa endereço público Base58 de 32–44 caracteres. O tipo descreve onde a carteira é mantida: software/extensão, dispositivo hardware ou serviço de custódia. Nunca informe frase-semente ou chave privada no formulário.
+
 A autenticação não tem página própria: `/login` e `/register` são apenas atalhos que abrem o card de autenticação sobre a rota em que o visitante estava e devolvem a navegação para ela. O card (`AuthDialog`) é único para login, cadastro e recuperação de senha, com abas "Entrar"/"Criar conta", divisória social (Google/Facebook) e fechamento por botão, `Esc` ou clique no backdrop. Ele é um overlay do `RootLayout`, portanto funciona em qualquer rota; o estado vive em `src/lib/auth-dialog.ts` (store externo) e não em search params, então a página de baixo continua montada. Os pontos de entrada — botão do header, "finalizar compra" sem sessão e o `401` de sessão expirada — abrem o mesmo card preservando `redirect`.
 
 A camada de UI recebe os dados via endpoints; não há fixtures de NFT/preço/atributo em JSX. Textos são mantidos em constantes nomeadas. `TanStack Query` mantém o estado remoto e refaz queries afetadas após mutations e eventos realtime.
@@ -103,8 +109,8 @@ Base URL: `/api`. Os endpoints protegidos usam o cookie de sessão simulado (nã
 | `GET /profile`                    | —                                                                                                                    | `200 CollectorProfile`                                                                                    | `401`, `404 NOT_FOUND`                                                                                                                                              |
 | `PATCH /profile`                  | Campos opcionais `displayName`, `ens`, `avatar`, `bio`                                                               | `200 CollectorProfile` atualizado                                                                         | `401`, `404`, `422 VALIDATION_ERROR`                                                                                                                                |
 | `GET /wallets`                    | —                                                                                                                    | `200 Wallet[]` do usuário                                                                                 | `401`                                                                                                                                                               |
-| `POST /wallets`                   | `{ "name", "address", "network" }`                                                                                   | `201 Wallet`                                                                                              | `401`, `409 WALLET_ALREADY_CONNECTED`, `422 VALIDATION_ERROR`                                                                                                       |
-| `PATCH /wallets/:walletId`        | Campos opcionais `name`, `address`, `network`                                                                        | `200 Wallet` atualizado                                                                                   | `401`, `403 FORBIDDEN`, `404`, `422 VALIDATION_ERROR`                                                                                                               |
+| `POST /wallets`                   | `{ "name", "nickname", "address", "network", "type", "ens", "referralCode", "email" }`                               | `201 Wallet`                                                                                              | `401`, `409 WALLET_ALREADY_CONNECTED`, `422 VALIDATION_ERROR` (inclusive endereço incompatível com a rede)                                                          |
+| `PATCH /wallets/:walletId`        | Campos opcionais `name`, `nickname`, `address`, `network`, `type`, `ens`, `referralCode`, `email`                    | `200 Wallet` atualizado                                                                                   | `401`, `403 FORBIDDEN`, `404`, `409 WALLET_ALREADY_CONNECTED`, `422 VALIDATION_ERROR`                                                                               |
 | `DELETE /wallets/:walletId`       | —                                                                                                                    | `200 { "success": true }`                                                                                 | `401`, `403`, `404`, `409 LAST_WALLET`                                                                                                                              |
 | `POST /wallets/:walletId/primary` | —                                                                                                                    | `200 Wallet` marcada como principal                                                                       | `401`, `403`, `404`                                                                                                                                                 |
 
@@ -173,6 +179,12 @@ npm run test:e2e       # Playwright
 ## Deploy (Vercel)
 
 O projeto é um SPA estático: a Vercel detecta o preset Vite, roda `npm run build` (type-check + Vite em modo `production`) e publica `dist`. Não existe backend — todas as chamadas `/api/*` e o Socket.IO são interceptados no navegador pelo MSW.
+
+### CI/CD
+
+O workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) roda em pull requests para `main`, em pushes para `main` e manualmente. Ele usa Node 24 e npm 10.9.9 (versões declaradas pelo projeto), instala com `npm ci`, valida formatação, TypeScript e lint, executa os testes E2E do Playwright no Chromium e confirma o build de produção usado na Vercel. Em caso de falha, guarda `test-results/` como artefato para diagnóstico.
+
+O deploy fica a cargo da integração Git da Vercel, evitando duplicar credenciais de deploy no GitHub Actions: com o repositório conectado no projeto Vercel, PRs geram Preview Deployments e pushes para a branch Production (normalmente `main`) geram Production Deployments. Se a integração Git da Vercel ainda não estiver conectada, conecte o repositório nas configurações do projeto Vercel; o workflow de CI não requer secrets.
 
 ```bash
 npx vercel          # preview deployment

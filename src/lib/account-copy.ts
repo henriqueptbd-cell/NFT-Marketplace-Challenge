@@ -89,6 +89,8 @@ export const accountCopy = {
   wallets: {
     title: 'Carteiras',
     description: 'Gerencie as carteiras conectadas à sua conta.',
+    formHint:
+      'Preencha os campos marcados com *: nome, apelido, rede, endereço, tipo e e-mail. ENS e código de indicação são opcionais; a carteira secundária também.',
     primaryTitle: 'Carteira principal',
     secondaryTitle: 'Carteira secundária',
     optional: 'Opcional',
@@ -102,6 +104,20 @@ export const accountCopy = {
     ens: 'ENS (.eth)',
     referralCode: 'Código de indicação',
     email: 'E-mail',
+    nameHint:
+      'Nome para reconhecer a carteira, por exemplo, MetaMask ou Ledger.',
+    nicknameHint: 'Apelido para identificar esta carteira na sua conta.',
+    networkHint: 'Escolha a rede à qual este endereço pertence.',
+    addressHintEvm:
+      'Ethereum e Polygon: endereço público começando com 0x e seguido de 40 caracteres hexadecimais.',
+    addressHintSolana:
+      'Solana: endereço público em Base58, normalmente com 32 a 44 caracteres. Não use sua frase-semente ou chave privada.',
+    typeHint:
+      'Software/extensão: app ou extensão; Hardware: dispositivo físico; Custódia: serviço que guarda as chaves.',
+    ensHint: 'Opcional: seu nome ENS terminado em .eth.',
+    referralCodeHint: 'Opcional: código de indicação, se você tiver um.',
+    emailHint:
+      'E-mail associado a esta carteira; o e-mail da conta já vem preenchido.',
     save: 'Salvar carteiras',
     saved: 'Suas carteiras foram atualizadas.',
     primaryBadge: 'Principal',
@@ -119,7 +135,12 @@ export const accountCopy = {
     usernameLength: 'Use de 2 a 32 caracteres.',
     passwordLength: 'A senha precisa ter pelo menos 8 caracteres.',
     passwordMismatch: 'As senhas não coincidem.',
-    walletAddress: 'Informe um endereço 0x válido com 42 caracteres.',
+    walletAddress:
+      'Informe um endereço de carteira válido para a rede escolhida.',
+    walletAddressEvm:
+      'Para Ethereum ou Polygon, informe 0x seguido de 40 caracteres hexadecimais.',
+    walletAddressSolana:
+      'Para Solana, informe um endereço público Base58 com 32 a 44 caracteres.',
     ens: 'Informe um nome ENS terminado em .eth.',
     emailAlreadyRegistered: 'Este e-mail já está cadastrado.',
     invalidCredentials: 'E-mail ou senha incorretos.',

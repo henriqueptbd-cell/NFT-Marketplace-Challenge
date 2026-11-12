@@ -1,6 +1,10 @@
 import { http, HttpResponse } from 'msw'
-import { z } from 'zod'
-import { networkSchema, walletSchema, walletTypeSchema } from '@/api/types'
+import {
+  walletAddressesEqual,
+  walletInputSchema,
+  walletPatchSchema,
+  walletSchema,
+} from '@/api/types'
 import {
   apiErrorResponse,
   createId,
@@ -10,23 +14,6 @@ import {
 } from '@/mocks/handlers/common'
 import { getActiveMockScenario } from '@/mocks/scenarios'
 import { getMockState, updateMockState } from '@/mocks/store'
-
-const walletInputSchema = z
-  .object({
-    name: z.string().trim().min(1).max(64),
-    nickname: z.string().trim().min(1).max(48),
-    address: z
-      .string()
-      .trim()
-      .regex(/^0x[a-fA-F0-9]{40}$/),
-    network: networkSchema,
-    type: walletTypeSchema,
-    ens: z.string().nullable(),
-    referralCode: z.string().nullable(),
-    email: z.string().trim().email(),
-  })
-  .strict()
-const walletPatchSchema = walletInputSchema.partial().strict()
 
 export const walletHandlers = [
   http.get('/api/wallets', async ({ request }) => {
@@ -48,8 +35,12 @@ export const walletHandlers = [
       state.wallets.some(
         (item) =>
           item.userId === user.id &&
-          item.address.toLowerCase() === parsed.data.address.toLowerCase() &&
-          item.network === parsed.data.network,
+          item.network === parsed.data.network &&
+          walletAddressesEqual(
+            item.address,
+            parsed.data.address,
+            parsed.data.network,
+          ),
       )
     ) {
       return apiErrorResponse(
@@ -94,8 +85,11 @@ export const walletHandlers = [
         item.id !== walletId &&
         item.userId === user.id &&
         item.network === (parsed.data.network ?? wallet.network) &&
-        item.address.toLowerCase() ===
-          (parsed.data.address ?? wallet.address).toLowerCase(),
+        walletAddressesEqual(
+          item.address,
+          parsed.data.address ?? wallet.address,
+          parsed.data.network ?? wallet.network,
+        ),
     )
     if (duplicate)
       return apiErrorResponse(
@@ -104,7 +98,21 @@ export const walletHandlers = [
         'Esta carteira já está conectada.',
         { address: ['Esta carteira já está conectada.'] },
       )
-    const updated = walletSchema.parse({ ...wallet, ...parsed.data })
+    const updatedResult = walletSchema.safeParse({ ...wallet, ...parsed.data })
+    if (!updatedResult.success) {
+      const fieldErrors: Record<string, string[]> = {}
+      for (const issue of updatedResult.error.issues) {
+        const field = issue.path.map(String).join('.') || 'body'
+        fieldErrors[field] = [...(fieldErrors[field] ?? []), issue.message]
+      }
+      return apiErrorResponse(
+        422,
+        'VALIDATION_ERROR',
+        'Request validation failed.',
+        fieldErrors,
+      )
+    }
+    const updated = updatedResult.data
     updateMockState((draft) => {
       const index = draft.wallets.findIndex((item) => item.id === walletId)
       if (index >= 0) draft.wallets[index] = updated

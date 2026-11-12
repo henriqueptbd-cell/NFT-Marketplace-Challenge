@@ -1,29 +1,13 @@
 import { z } from 'zod'
 import { apiClient } from '@/api/client'
 import {
-  networkSchema,
+  walletInputSchema,
+  walletPatchSchema,
   walletSchema,
-  walletTypeSchema,
   type Wallet,
 } from '@/api/types'
 
 const walletListSchema = z.array(walletSchema)
-const walletInputSchema = z
-  .object({
-    name: z.string().trim().min(1).max(64),
-    nickname: z.string().trim().min(1).max(48),
-    address: z
-      .string()
-      .trim()
-      .regex(/^0x[a-fA-F0-9]{40}$/),
-    network: networkSchema,
-    type: walletTypeSchema,
-    ens: z.string().nullable(),
-    referralCode: z.string().nullable(),
-    email: z.string().trim().email(),
-  })
-  .strict()
-const walletPatchSchema = walletInputSchema.partial().strict()
 
 export async function getWallets(): Promise<Wallet[]> {
   const { data } = await apiClient.get<unknown>('/wallets')

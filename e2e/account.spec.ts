@@ -169,6 +169,11 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
   await signInThroughForm(page, 'collector@kurio.io')
   await openRoute(page, '/wallets')
   await expect(page.locator('#primary-wallet-address')).toBeVisible()
+  await expect(
+    page.getByText(
+      /campos marcados com \*: nome, apelido, rede, endereço, tipo e e-mail/,
+    ),
+  ).toBeVisible()
 
   await page.locator('#primary-wallet-address').fill('0xinvalid')
   await page.getByRole('button', { name: 'Salvar carteiras' }).click()
@@ -177,7 +182,9 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
     'true',
   )
   await expect(
-    page.getByText('Informe um endereço 0x válido com 42 caracteres.'),
+    page.getByText(
+      'Para Ethereum ou Polygon, informe 0x seguido de 40 caracteres hexadecimais.',
+    ),
   ).toBeVisible()
 
   const primaryAddress = `0x${'3'.repeat(40)}`
@@ -194,8 +201,27 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
   await page
     .getByRole('checkbox', { name: 'Igual à carteira principal' })
     .uncheck()
-  const secondaryAddress = `0x${'4'.repeat(40)}`
+  await page.locator('#secondary-wallet-network').click()
+  await page.getByRole('option', { name: 'Solana' }).click()
+  await expect(
+    page.getByText(/Solana: endereço público em Base58/),
+  ).toBeVisible()
+  await page.locator('#secondary-wallet-address').fill(`0x${'4'.repeat(40)}`)
+  await page.getByRole('button', { name: 'Salvar carteiras' }).click()
+  await expect(page.locator('#secondary-wallet-address')).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+  await expect(
+    page.getByText(
+      'Para Solana, informe um endereço público Base58 com 32 a 44 caracteres.',
+    ),
+  ).toBeVisible()
+
+  const secondaryAddress = '1'.repeat(32)
   await page.locator('#secondary-wallet-address').fill(secondaryAddress)
+  await page.locator('#secondary-wallet-ens').fill('')
+  await page.locator('#secondary-wallet-referral-code').fill('')
   await page.getByRole('button', { name: 'Salvar carteiras' }).click()
   await expect(
     page.getByText('Suas carteiras foram atualizadas.'),
@@ -208,6 +234,7 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
   await expect(page.locator('#secondary-wallet-address')).toHaveValue(
     secondaryAddress,
   )
+  await expect(page.locator('#secondary-wallet-network')).toHaveText('Solana')
 
   await page.setViewportSize({ width: 390, height: 844 })
   await page.reload()
@@ -216,6 +243,40 @@ test('carteiras validam endereço, preenchem o secundário e abrem drawer mobile
   await expect(drawer).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
+})
+
+test('endereços Solana preservam maiúsculas e minúsculas ao adicionar uma carteira', async ({
+  page,
+}) => {
+  await signInThroughForm(page)
+  await openRoute(page, '/wallets')
+
+  await page.locator('#primary-wallet-network').click()
+  await page.getByRole('option', { name: 'Solana' }).click()
+  const primaryAddress = 'A'.repeat(32)
+  await page.locator('#primary-wallet-address').fill(primaryAddress)
+
+  await page
+    .getByRole('checkbox', { name: 'Adicionar carteira secundária' })
+    .check()
+  await page.locator('#secondary-wallet-network').click()
+  await page.getByRole('option', { name: 'Solana' }).click()
+  await page.locator('#secondary-wallet-name').fill('Solana alternativa')
+  await page.locator('#secondary-wallet-nickname').fill('Outra chave')
+  const secondaryAddress = 'a'.repeat(32)
+  await page.locator('#secondary-wallet-address').fill(secondaryAddress)
+  await page.getByRole('button', { name: 'Salvar carteiras' }).click()
+
+  await expect(
+    page.getByText('Suas carteiras foram atualizadas.'),
+  ).toBeVisible()
+  await page.reload()
+  await expect(page.locator('#primary-wallet-address')).toHaveValue(
+    primaryAddress,
+  )
+  await expect(page.locator('#secondary-wallet-address')).toHaveValue(
+    secondaryAddress,
+  )
 })
 
 test('401 por sessão expirada abre o card de login sobre a rota atual', async ({
