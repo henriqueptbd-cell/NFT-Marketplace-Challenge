@@ -20,6 +20,9 @@ lerna-debug.log*
 playwright-report/
 test-results/
 
+# Vercel CLI local project metadata
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

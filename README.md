@@ -169,3 +169,22 @@ npm run build:demo     # build explícito de demonstração
 npm run preview:demo   # servir dist depois de build:demo
 npm run test:e2e       # Playwright
 ```
+
+## Deploy (Vercel)
+
+O projeto é um SPA estático: a Vercel detecta o preset Vite, roda `npm run build` (type-check + Vite em modo `production`) e publica `dist`. Não existe backend — todas as chamadas `/api/*` e o Socket.IO são interceptados no navegador pelo MSW.
+
+```bash
+npx vercel          # preview deployment
+npx vercel --prod   # produção
+```
+
+Ou importe o repositório em [vercel.com/new](https://vercel.com/new); nenhuma variável de ambiente precisa ser configurada para a demonstração, porque `.env.production` (versionado) já traz `VITE_ENABLE_MOCKS=true`.
+
+O [`vercel.json`](./vercel.json) cuida do que o preset Vite não cobre:
+
+- **Fallback de SPA** para `/nft/:id`, `/cart`, `/checkout`, `/profile` e `/wallets` funcionarem em acesso direto e refresh. Arquivos estáticos têm precedência sobre rewrites, e `/api/*` fica de fora para não devolver HTML no lugar de JSON quando um endpoint não está mockado.
+- **`mockServiceWorker.js`** com `Cache-Control: no-cache` e `Service-Worker-Allowed: /`, garantindo escopo na raiz e atualização do worker entre deploys.
+- **Headers de segurança** básicos (`nosniff`, `Referrer-Policy`) e cache imutável para os assets com hash.
+
+O Service Worker exige HTTPS (a Vercel fornece) e registra o escopo na primeira visita; para apontar a um backend real, sobrescreva `VITE_ENABLE_MOCKS=false`, `VITE_API_URL` e `VITE_SOCKET_URL` nas configurações do projeto.

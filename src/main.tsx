@@ -14,8 +14,14 @@ import '@/index.css'
 
 async function startApplication(): Promise<void> {
   if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
-    const { worker } = await import('@/mocks/browser')
-    await worker.start({ onUnhandledRequest: 'bypass' })
+    try {
+      const { worker } = await import('@/mocks/browser')
+      await worker.start({ onUnhandledRequest: 'bypass' })
+    } catch (error) {
+      // Sem o worker não há dados de demonstração, mas a UI precisa renderizar
+      // e mostrar os próprios estados de erro em vez de uma tela em branco.
+      console.error('[kurio] falha ao iniciar o MSW', error)
+    }
   }
 
   const rootElement = document.getElementById('root')
